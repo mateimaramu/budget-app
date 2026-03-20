@@ -526,27 +526,41 @@ async function flushQueue(){
 async function syncFromCloud(silent=false){
   if(!syncEnabled||!isOnline)return;
   if(!silent)setSyncStatus('syncing');
+
   const remote=await sbGetAll();
-  // Connection failed
   if(remote===null){setSyncStatus('error');return;}
-  // First sync: remote empty but we have local data — push everything up
-  if(remote.length===0&&txs.length>0){
-    for(const t of txs) await sbUpsert(t);
-    setSyncStatus('online');
-    return;
+
+  // Build maps for efficient lookup
+  const remoteMap=new Map(remote.map(r=>[Number(r.id),r]));
+  const localMap=new Map(txs.map(t=>[t.id,t]));
+
+  // Items in local but NOT in remote → push up to Supabase (never lose local data)
+  const toUpload=txs.filter(t=>!remoteMap.has(t.id));
+  for(const t of toUpload){
+    await sbUpsert(t);
   }
-  // Cloud is source of truth — overwrite local entirely
-  const remoteItems=remote.map(r=>({
-    id:Number(r.id),
-    type:r.type,
-    amt:parseFloat(r.amt),
-    desc:r.description||r.desc||'',
-    cat:r.cat,
-    date:r.date
-  }));
-  await idbClear(ST);
-  for(const item of remoteItems) await idbPut(ST,item);
-  txs=remoteItems;
+
+  // Items in remote but NOT in local → pull down and save locally
+  const toDownload=remote.filter(r=>!localMap.has(Number(r.id)));
+  for(const r of toDownload){
+    const item={id:Number(r.id),type:r.type,amt:parseFloat(r.amt),desc:r.description||r.desc||'',cat:r.cat,date:r.date};
+    await idbPut(ST,item);
+    txs.push(item);
+  }
+
+  // Items deleted remotely (in local but marked deleted=true on remote) → remove locally
+  const deletedRemote=new Set(
+    remote.filter(r=>r.deleted).map(r=>Number(r.id))
+  );
+  if(deletedRemote.size>0){
+    for(const id of deletedRemote){
+      if(localMap.has(id)){
+        txs=txs.filter(t=>t.id!==id);
+        await idbDel(ST,id);
+      }
+    }
+  }
+
   render();
   setSyncStatus('online');
 }
@@ -664,15 +678,25 @@ async function saveTx(){
   const dt=document.getElementById('inp-date').value;
   if(!a||a<=0||!d||!dt){alert('Compila tutti i campi');return;}
   const item={id:Date.now(),type:cType,amt:a,desc:d,cat:c,date:dt};
-  // Save locally
-  await idbPut(ST,item); txs.push(item); closeModal();
+  // 1. Save to local IndexedDB immediately
+  await idbPut(ST,item);
+  txs.push(item);
+  closeModal();
   document.getElementById('inp-amt').value='';
   document.getElementById('inp-desc').value='';
   document.getElementById('inp-date').value=today();
   render();
-  // Sync to cloud
-  if(syncEnabled&&isOnline) sbUpsert(item).then(()=>setSyncStatus('online'));
-  else if(syncEnabled) await idbPut(QST,{id:item.id+'_up',op:'upsert',data:item});
+  // 2. Push to Supabase — await so it's guaranteed written before any sync
+  if(syncEnabled){
+    if(isOnline){
+      setSyncStatus('syncing');
+      const ok=await sbUpsert(item);
+      setSyncStatus(ok!==undefined?'online':'error');
+    } else {
+      await idbPut(QST,{id:item.id+'_up',op:'upsert',data:item});
+      updateQueueCount();
+    }
+  }
 }
 
 async function deleteTx(id){
