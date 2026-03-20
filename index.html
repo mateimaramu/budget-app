@@ -330,11 +330,24 @@ CREATE POLICY "public access" ON transactions
     </div>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)"/>
 
-    <div class="section-title">Zona pericolo</div>
+    <div class="section-title" id="st-lingua">Lingua</div>
+    <div class="settings-group">
+      <div class="settings-row" style="cursor:default">
+        <div class="sr-icon" style="background:rgba(16,185,129,0.15);font-size:20px">🌐</div>
+        <div class="sr-body"><div class="sr-title" id="st-seleziona-lingua">Seleziona lingua</div></div>
+        <select id="lang-select" onchange="setLang(this.value)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer;-webkit-appearance:none;">
+          <option value="it">🇮🇹 Italiano</option>
+          <option value="ro">🇷🇴 Română</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-title" id="st-pericolo">Zona pericolo</div>
     <div class="settings-group">
       <div class="settings-row" onclick="resetDB()">
         <div class="sr-icon red">🗑️</div>
-        <div class="sr-body"><div class="sr-title">Cancella tutti i dati</div><div class="sr-sub">Locale e cloud — irreversibile</div></div>
+        <div class="sr-body"><div class="sr-title" id="st-cancella">Cancella tutti i dati</div><div class="sr-sub" id="st-cancella-sub">Locale e cloud — irreversibile</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
@@ -372,16 +385,209 @@ CREATE POLICY "public access" ON transactions
 // ═══════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════
-const CATS={e:['Stipendio','Freelance','Affitto ricevuto','Investimenti','Regalo','Rimborso','Altro'],s:['Casa','Cibo & Spesa','Trasporti','Salute','Svago','Abbigliamento','Bollette','Abbonamenti','Ristorante','Sport','Altro']};
-const ICONS={Stipendio:'💼',Freelance:'💻','Affitto ricevuto':'🏠',Investimenti:'📈',Regalo:'🎁',Rimborso:'↩️',Casa:'🏠','Cibo & Spesa':'🛒',Trasporti:'🚗',Salute:'💊',Svago:'🎮',Abbigliamento:'👔',Bollette:'⚡',Abbonamenti:'📱',Ristorante:'🍽️',Sport:'🏃',Altro:'💰'};
+// ═══════════════════════════════════════════
+// I18N — TRANSLATIONS
+// ═══════════════════════════════════════════
+const LANGS={
+  it:{
+    cats:{e:['Stipendio','Freelance','Affitto ricevuto','Investimenti','Regalo','Rimborso','Altro'],s:['Casa','Cibo & Spesa','Trasporti','Salute','Svago','Abbigliamento','Bollette','Abbonamenti','Ristorante','Sport','Altro']},
+    mi:['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'],
+    mf:['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
+    t:{
+      title:'💰 Budget',
+      entrate:'Entrate', spese:'Spese', saldo:'Saldo del mese', saldoAnno:'Saldo annuale',
+      entrateAnno:'Entrate annue', speseAnno:'Spese annue', tassoRisparmio:'Tasso risparmio',
+      ultimi6:'Ultimi 6 mesi', tuttiMesi:'Entrate vs Spese — tutti i mesi',
+      andamentoSaldo:"Andamento saldo nell'anno", saldoCumul:'Saldo cumulativo',
+      speseCateg:'Spese per categoria', entrateCateg:'Entrate per categoria',
+      dettaglio:'Dettaglio mese per mese', movimenti:'Movimenti', nessunMov:'Nessun movimento questo mese',
+      nessunaDato:'Nessun dato', nessunaSpesa:'Nessuna spesa', nessunEntrata:'Nessuna entrata',
+      nuovoMov:'Nuovo movimento', entrata:'+ Entrata', spesa:'− Spesa',
+      importo:'Importo €', descrizione:'Descrizione', categoria:'Categoria', data:'Data',
+      salvaEntrata:'Salva entrata', salvaSpesa:'Salva spesa', compila:'Compila tutti i campi',
+      sincro:'Sincronizzazione', dbLocale:'Database locale', posizione:'Posizione',
+      posizioneVal:'IndexedDB (dispositivo)', movTotali:'Movimenti totali', primoMov:'Primo movimento',
+      ultimoMov:'Ultimo movimento', dimStimata:'Dimensione stimata', inCoda:'In coda offline',
+      esporta:'Esporta', esportaJSON:'Esporta JSON', esportaJSONsub:'Backup completo, reimportabile',
+      esportaCSV:'Esporta CSV', esportaCSVsub:'Per Excel o Fogli Google',
+      importa:'Importa', importaJSON:'Importa da JSON', importaJSONsub:'Ripristina un backup precedente',
+      lingua:'Lingua', selLingua:'Seleziona lingua',
+      pericolo:'Zona pericolo', cancella:'Cancella tutti i dati', cancellaSub:'Locale e cloud — irreversibile',
+      stato:'Stato', progetto:'Progetto', modificaConf:'Modifica configurazione', modificaConfSub:'Cambia progetto Supabase',
+      syncOra:'Sincronizza ora', syncOraSub:'Forza aggiornamento dal cloud',
+      mese:'Mese', anno:'Anno', sync:'Sync', dati:'Dati',
+      connesso:'🟢 Connesso e sincronizzato', configOffline:'🟡 Configurato, ora offline', soloLocale:'⚪ Solo locale',
+      ottimo:'🌟 Ottimo risparmio', buono:'👍 Buon risparmio', basso:'⚠️ Basso', deficit:'🔴 Deficit',
+      syncCompletata:'✅ Sincronizzazione completata', syncNonConf:'⚠️ Sincronizzazione non configurata',
+      offline:'📴 Sei offline', jsonEsp:'✅ JSON esportato', csvEsp:'✅ CSV esportato',
+      errImport:'❌ Errore importazione', fileInvalido:'❌ File non valido',
+      trovati:'Trovati', movImportati:'movimenti.
+OK = Aggiungi   Annulla = Sostituisci',
+      movImportatiOk:'movimenti importati', cancellaConf:'Cancellare TUTTI i',
+      cancellaConf2:'movimenti?
+Questa azione è irreversibile.',
+      cancellaCloud:'Cancellare anche dal cloud (Supabase)?',
+      datiCancellati:'🗑️ Dati cancellati', sincronizzato:'sincronizzato', syncing:'sync...', errore:'errore',
+      mesiTabella:'Mese', entrateTbl:'Entrate', speseTbl:'Spese', saldoTbl:'Saldo',
+      esDesc:'es. Stipendio', elimina:'Elimina'
+    }
+  },
+  ro:{
+    cats:{e:['Salariu','Freelance','Chirie primită','Investiții','Cadou','Rambursare','Altele'],s:['Casă','Mâncare & Cumpărături','Transport','Sănătate','Distracție','Îmbrăcăminte','Facturi','Abonamente','Restaurant','Sport','Altele']},
+    mi:['Ian','Feb','Mar','Apr','Mai','Iun','Iul','Aug','Sep','Oct','Nov','Dec'],
+    mf:['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
+    t:{
+      title:'💰 Buget',
+      entrate:'Venituri', spese:'Cheltuieli', saldo:'Sold lunar', saldoAnno:'Sold anual',
+      entrateAnno:'Venituri anuale', speseAnno:'Cheltuieli anuale', tassoRisparmio:'Rata de economii',
+      ultimi6:'Ultimele 6 luni', tuttiMesi:'Venituri vs Cheltuieli — toate lunile',
+      andamentoSaldo:'Evoluția soldului în an', saldoCumul:'Sold cumulativ',
+      speseCateg:'Cheltuieli pe categorie', entrateCateg:'Venituri pe categorie',
+      dettaglio:'Detaliu lună cu lună', movimenti:'Tranzacții', nessunMov:'Nicio tranzacție luna aceasta',
+      nessunaDato:'Nicio dată', nessunaSpesa:'Nicio cheltuială', nessunEntrata:'Niciun venit',
+      nuovoMov:'Tranzacție nouă', entrata:'+ Venit', spesa:'− Cheltuială',
+      importo:'Sumă €', descrizione:'Descriere', categoria:'Categorie', data:'Data',
+      salvaEntrata:'Salvează venitul', salvaSpesa:'Salvează cheltuiala', compila:'Completează toate câmpurile',
+      sincro:'Sincronizare', dbLocale:'Bază de date locală', posizione:'Locație',
+      posizioneVal:'IndexedDB (dispozitiv)', movTotali:'Total tranzacții', primoMov:'Prima tranzacție',
+      ultimoMov:'Ultima tranzacție', dimStimata:'Dimensiune estimată', inCoda:'În așteptare offline',
+      esporta:'Export', esportaJSON:'Export JSON', esportaJSONsub:'Backup complet, reimportabil',
+      esportaCSV:'Export CSV', esportaCSVsub:'Pentru Excel sau Foi de calcul',
+      importa:'Import', importaJSON:'Import din JSON', importaJSONsub:'Restaurează un backup anterior',
+      lingua:'Limbă', selLingua:'Selectează limba',
+      pericolo:'Zonă de pericol', cancella:'Șterge toate datele', cancellaSub:'Local și cloud — ireversibil',
+      stato:'Stare', progetto:'Proiect', modificaConf:'Modifică configurația', modificaConfSub:'Schimbă proiectul Supabase',
+      syncOra:'Sincronizează acum', syncOraSub:'Forțează actualizarea din cloud',
+      mese:'Lună', anno:'An', sync:'Sync', dati:'Date',
+      connesso:'🟢 Conectat și sincronizat', configOffline:'🟡 Configurat, acum offline', soloLocale:'⚪ Doar local',
+      ottimo:'🌟 Economii excelente', buono:'👍 Economii bune', basso:'⚠️ Economii mici', deficit:'🔴 Deficit',
+      syncCompletata:'✅ Sincronizare completată', syncNonConf:'⚠️ Sincronizare neconfigurată',
+      offline:'📴 Ești offline', jsonEsp:'✅ JSON exportat', csvEsp:'✅ CSV exportat',
+      errImport:'❌ Eroare import', fileInvalido:'❌ Fișier invalid',
+      trovati:'Găsite', movImportati:'tranzacții.
+OK = Adaugă   Anulare = Înlocuiește',
+      movImportatiOk:'tranzacții importate', cancellaConf:'Șterge TOATE cele',
+      cancellaConf2:'tranzacții?
+Această acțiune este ireversibilă.',
+      cancellaCloud:'Șterge și din cloud (Supabase)?',
+      datiCancellati:'🗑️ Date șterse', sincronizzato:'sincronizat', syncing:'sync...', errore:'eroare',
+      mesiTabella:'Lună', entrateTbl:'Venituri', speseTbl:'Cheltuieli', saldoTbl:'Sold',
+      esDesc:'ex. Salariu', elimina:'Șterge'
+    }
+  },
+  en:{
+    cats:{e:['Salary','Freelance','Rent received','Investments','Gift','Reimbursement','Other'],s:['Home','Food & Shopping','Transport','Health','Entertainment','Clothing','Bills','Subscriptions','Restaurant','Sport','Other']},
+    mi:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    mf:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    t:{
+      title:'💰 Budget',
+      entrate:'Income', spese:'Expenses', saldo:'Monthly balance', saldoAnno:'Annual balance',
+      entrateAnno:'Annual income', speseAnno:'Annual expenses', tassoRisparmio:'Savings rate',
+      ultimi6:'Last 6 months', tuttiMesi:'Income vs Expenses — all months',
+      andamentoSaldo:'Balance trend during the year', saldoCumul:'Cumulative balance',
+      speseCateg:'Expenses by category', entrateCateg:'Income by category',
+      dettaglio:'Month by month breakdown', movimenti:'Transactions', nessunMov:'No transactions this month',
+      nessunaDato:'No data', nessunaSpesa:'No expenses', nessunEntrata:'No income',
+      nuovoMov:'New transaction', entrata:'+ Income', spesa:'− Expense',
+      importo:'Amount €', descrizione:'Description', categoria:'Category', data:'Date',
+      salvaEntrata:'Save income', salvaSpesa:'Save expense', compila:'Please fill in all fields',
+      sincro:'Synchronization', dbLocale:'Local database', posizione:'Location',
+      posizioneVal:'IndexedDB (device)', movTotali:'Total transactions', primoMov:'First transaction',
+      ultimoMov:'Last transaction', dimStimata:'Estimated size', inCoda:'Offline queue',
+      esporta:'Export', esportaJSON:'Export JSON', esportaJSONsub:'Full backup, re-importable',
+      esportaCSV:'Export CSV', esportaCSVsub:'Open with Excel or Google Sheets',
+      importa:'Import', importaJSON:'Import from JSON', importaJSONsub:'Restore a previous backup',
+      lingua:'Language', selLingua:'Select language',
+      pericolo:'Danger zone', cancella:'Delete all data', cancellaSub:'Local and cloud — irreversible',
+      stato:'Status', progetto:'Project', modificaConf:'Edit configuration', modificaConfSub:'Change Supabase project',
+      syncOra:'Sync now', syncOraSub:'Force update from cloud',
+      mese:'Month', anno:'Year', sync:'Sync', dati:'Data',
+      connesso:'🟢 Connected and synced', configOffline:'🟡 Configured, now offline', soloLocale:'⚪ Local only',
+      ottimo:'🌟 Excellent savings', buono:'👍 Good savings', basso:'⚠️ Low savings', deficit:'🔴 Deficit',
+      syncCompletata:'✅ Sync completed', syncNonConf:'⚠️ Sync not configured',
+      offline:'📴 You are offline', jsonEsp:'✅ JSON exported', csvEsp:'✅ CSV exported',
+      errImport:'❌ Import error', fileInvalido:'❌ Invalid file',
+      trovati:'Found', movImportati:'transactions.
+OK = Add   Cancel = Replace',
+      movImportatiOk:'transactions imported', cancellaConf:'Delete ALL',
+      cancellaConf2:'transactions?
+This action is irreversible.',
+      cancellaCloud:'Also delete from cloud (Supabase)?',
+      datiCancellati:'🗑️ Data deleted', sincronizzato:'synced', syncing:'syncing...', errore:'error',
+      mesiTabella:'Month', entrateTbl:'Income', speseTbl:'Expenses', saldoTbl:'Balance',
+      esDesc:'e.g. Salary', elimina:'Delete'
+    }
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'it';
+function L(key){ return LANGS[currentLang].t[key] || LANGS['it'].t[key] || key; }
+function CATS(){ return LANGS[currentLang].cats; }
+function MI(){ return LANGS[currentLang].mi; }
+function MF(){ return LANGS[currentLang].mf; }
+
+const ICONS_MAP={};
+// Build icon map from all languages
+Object.values(LANGS).forEach(lang=>{
+  [...lang.cats.e,...lang.cats.s].forEach((cat,i,arr)=>{
+    const icons=['💼','💻','🏠','📈','🎁','↩️','🏠','🛒','🚗','💊','🎮','👔','⚡','📱','🍽️','🏃','💰'];
+    if(!ICONS_MAP[cat]) ICONS_MAP[cat]=icons[i%icons.length]||'💰';
+  });
+});
+// Static icon assignments
+const ICONS_STATIC={
+  Stipendio:'💼',Freelance:'💻','Affitto ricevuto':'🏠',Investimenti:'📈',Regalo:'🎁',Rimborso:'↩️',
+  Casa:'🏠','Cibo & Spesa':'🛒',Trasporti:'🚗',Salute:'💊',Svago:'🎮',Abbigliamento:'👔',
+  Bollette:'⚡',Abbonamenti:'📱',Ristorante:'🍽️',Sport:'🏃',Altro:'💰',
+  Salary:'💼','Rent received':'🏠',Investments:'📈',Gift:'🎁',Reimbursement:'↩️',
+  Home:'🏠','Food & Shopping':'🛒',Transport:'🚗',Health:'💊',Entertainment:'🎮',
+  Clothing:'👔',Bills:'⚡',Subscriptions:'📱',Restaurant:'🍽️',Other:'💰',
+  Salariu:'💼','Chirie primită':'🏠','Investiții':'📈',Cadou:'🎁',Rambursare:'↩️',
+  'Casă':'🏠','Mâncare & Cumpărături':'🛒',Transport:'🚗','Sănătate':'💊',
+  'Distracție':'🎮','Îmbrăcăminte':'👔',Facturi:'⚡',Abonamente:'📱',Altele:'💰'
+};
+function getIcon(cat){ return ICONS_STATIC[cat]||'💰'; }
+
 const CLRS=['#10b981','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48'];
-const MI=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-const MF=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+function setLang(lang){
+  currentLang=lang;
+  localStorage.setItem('lang',lang);
+  applyLang();
+  fillCats();
+  render();
+  if(page==='impost') renderImpost();
+}
+
+function applyLang(){
+  // Topbar
+  document.querySelector('.topbar h1').textContent=L('title');
+  // Bottom nav
+  document.getElementById('bn-mese').innerHTML=`<span class="bn-icon">📅</span>${L('mese')}`;
+  document.getElementById('bn-anno').innerHTML=`<span class="bn-icon">📊</span>${L('anno')}`;
+  document.getElementById('bn-sync').innerHTML=`<span class="bn-icon" id="sync-nav-icon">🔄</span>${L('sync')}`;
+  document.getElementById('bn-impost').innerHTML=`<span class="bn-icon">⚙️</span>${L('dati')}`;
+  // Modal
+  document.getElementById('type-e').textContent=L('entrata');
+  document.getElementById('type-s').textContent=L('spesa');
+  document.querySelector('#inp-amt').placeholder=L('importo').replace(' €','');
+  document.querySelector('label[for="inp-amt"]') && (document.querySelector('label[for="inp-amt"]').textContent=L('importo'));
+  document.getElementById('inp-desc').placeholder=L('esDesc');
+  // Settings page labels
+  const ids={
+    'st-lingua':L('lingua'),'st-seleziona-lingua':L('selLingua'),
+    'st-pericolo':L('pericolo'),'st-cancella':L('cancella'),'st-cancella-sub':L('cancellaSub')
+  };
+  Object.entries(ids).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
+  // Lang select value
+  const sel=document.getElementById('lang-select');
+  if(sel) sel.value=currentLang;
+}
 
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let cType='e', vYear=new Date().getFullYear(), vMonth=new Date().getMonth(), page='mese';
+let cType='e', vYear=new Date().getFullYear(), vMonth=new Date().getMonth(), page='mese', currentLangLoaded=false;
 let txs=[], charts={}, dp=null;
 let sbUrl='', sbKey='', syncEnabled=false;
 let offlineQueue=[]; // items pending sync
@@ -482,7 +688,7 @@ function setSyncStatus(s,label){
   const btn=document.getElementById('bn-sync');
   if(!dot)return;
   dot.className='sync-dot '+s;
-  lbl.textContent=label||(s==='online'?'sincronizzato':s==='syncing'?'sync...':s==='error'?'errore':'offline');
+  lbl.textContent=label||(s==='online'?L('sincronizzato'):s==='syncing'?L('syncing'):s==='error'?L('errore'):'offline');
   if(!icon||!btn)return;
   if(s==='syncing'){
     icon.style.display='inline-block';
@@ -579,12 +785,12 @@ function updateQueueCount(){
 }
 
 async function manualSync(){
-  if(!syncEnabled){showToast('⚠️ Sincronizzazione non configurata');return;}
-  if(!isOnline){showToast('📴 Sei offline');return;}
+  if(!syncEnabled){showToast(L('syncNonConf'));return;}
+  if(!isOnline){showToast(L('offline'));return;}
   setSyncStatus('syncing');
   await flushQueue();
   await syncFromCloud();
-  showToast('✅ Sincronizzazione completata');
+  showToast(L('syncCompletata'));
   if(page==='impost') renderImpost();
 }
 
@@ -665,18 +871,25 @@ function setType(t){
   cType=t;
   document.getElementById('type-e').className='type-btn e'+(t==='e'?' active':'');
   document.getElementById('type-s').className='type-btn s'+(t==='s'?' active':'');
-  document.getElementById('save-btn').textContent=t==='e'?'Salva entrata':'Salva spesa';
+  document.getElementById('save-btn').textContent=t==='e'?L('salvaEntrata'):L('salvaSpesa');
   document.getElementById('save-btn').className='save-btn '+t;
   fillCats();
 }
-function fillCats(){document.getElementById('inp-cat').innerHTML=CATS[cType].map(c=>`<option>${c}</option>`).join('');}
+function fillCats(){
+  document.getElementById('inp-cat').innerHTML=CATS()[cType].map(c=>`<option>${c}</option>`).join('');
+  // Update modal labels
+  document.getElementById('type-e').textContent=L('entrata');
+  document.getElementById('type-s').textContent=L('spesa');
+  const sb=document.getElementById('save-btn');
+  if(sb) sb.textContent=cType==='e'?L('salvaEntrata'):L('salvaSpesa');
+}
 
 async function saveTx(){
   const a=parseFloat(document.getElementById('inp-amt').value);
   const d=document.getElementById('inp-desc').value.trim();
   const c=document.getElementById('inp-cat').value;
   const dt=document.getElementById('inp-date').value;
-  if(!a||a<=0||!d||!dt){alert('Compila tutti i campi');return;}
+  if(!a||a<=0||!d||!dt){alert(L('compila'));return;}
   const item={id:Date.now(),type:cType,amt:a,desc:d,cat:c,date:dt};
   // 1. Save to local IndexedDB immediately
   await idbPut(ST,item);
@@ -718,7 +931,7 @@ function renderCats(elId,list,cls){
   if(!cats.length){el.innerHTML='<div class="tx-empty">Nessun dato</div>';return;}
   el.innerHTML=cats.map((c,i)=>`
     <div class="cat-row">
-      <div class="cat-icon">${ICONS[c[0]]||'💰'}</div>
+      <div class="cat-icon">${getIcon(c[0])||'💰'}</div>
       <div class="cat-info"><div class="cat-name">${c[0]}</div>
       <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${(c[1]/mx*100).toFixed(1)}%;background:${CLRS[i%CLRS.length]}"></div></div></div>
       <div class="cat-val ${cls}">${fmt(c[1])}</div>
@@ -741,11 +954,11 @@ function renderMese(){
   else{
     txEl.innerHTML=list.map(t=>`
       <div class="tx-item" id="tx-${t.id}">
-        <div class="tx-emoji ${t.type}">${ICONS[t.cat]||'💰'}</div>
+        <div class="tx-emoji ${t.type}">${getIcon(t.cat)||'💰'}</div>
         <div class="tx-body"><div class="tx-desc">${t.desc}</div>
         <div class="tx-meta">${t.cat} · ${new Date(t.date).toLocaleDateString('it-IT')}</div></div>
         <div class="tx-amt ${t.type}">${t.type==='e'?'+':'-'}${fmt(t.amt)}</div>
-        <button class="tx-del-btn" onclick="deleteTx(${t.id})">Elimina</button>
+        <button class="tx-del-btn" onclick="deleteTx(${t.id})">'+L('elimina')+'</button>
       </div>`).join('');
     list.forEach(t=>{
       const el=document.getElementById('tx-'+t.id);
@@ -757,7 +970,7 @@ function renderMese(){
   renderCats('cat-mese',list.filter(t=>t.type==='s'),'red');
   dc('mese');
   const lbs=[],eD=[],sD=[];
-  for(let i=5;i>=0;i--){const d=new Date(vYear,vMonth-i,1);lbs.push(MI[d.getMonth()]);const mt=txs.filter(t=>{const td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});eD.push(parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2)));sD.push(parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2)));}
+  for(let i=5;i>=0;i--){const d=new Date(vYear,vMonth-i,1);lbs.push(MI()[d.getMonth()]);const mt=txs.filter(t=>{const td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});eD.push(parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2)));sD.push(parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2)));}
   charts['mese']=new Chart(document.getElementById('chart-mese'),{type:'bar',data:{labels:lbs,datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:6,barPercentage:0.6},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:6,barPercentage:0.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
 }
 
@@ -773,14 +986,14 @@ function renderAnno(){
   document.getElementById('a-rate-sub').textContent=rate>=20?'🌟 Ottimo risparmio':rate>=10?'👍 Buon risparmio':rate>0?'⚠️ Basso':'🔴 Deficit';
   const eD=[],sD=[],cumD=[];let cum=0;
   for(let m=0;m<12;m++){const mt=list.filter(t=>new Date(t.date).getMonth()===m);const mI=parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2));const mO=parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2));eD.push(mI);sD.push(mO);cum=parseFloat((cum+mI-mO).toFixed(2));cumD.push(cum);}
-  dc('anno');charts['anno']=new Chart(document.getElementById('chart-anno'),{type:'bar',data:{labels:MI,datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:5,barPercentage:0.55},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:5,barPercentage:0.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
-  dc('cumul');charts['cumul']=new Chart(document.getElementById('chart-cumul'),{type:'line',data:{labels:MI,datasets:[{label:'Saldo',data:cumD,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
+  dc('anno');charts['anno']=new Chart(document.getElementById('chart-anno'),{type:'bar',data:{labels:MI(),datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:5,barPercentage:0.55},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:5,barPercentage:0.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
+  dc('cumul');charts['cumul']=new Chart(document.getElementById('chart-cumul'),{type:'line',data:{labels:MI(),datasets:[{label:'Saldo',data:cumD,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
   renderCats('cat-spese-anno',list.filter(t=>t.type==='s'),'red');
   renderCats('cat-entrate-anno',list.filter(t=>t.type==='e'),'green');
   const tbl=document.getElementById('month-table');
-  tbl.innerHTML=`<div class="mtr hdr"><span>Mese</span><span style="text-align:right">Entrate</span><span style="text-align:right">Spese</span><span style="text-align:right">Saldo</span></div>`
-  +MI.map((mn,m)=>{const mI=eD[m],mO=sD[m],mB=parseFloat((mI-mO).toFixed(2));const bc=mB>0?'var(--green)':mB<0?'var(--red)':'var(--muted)';const has=mI>0||mO>0;
-    return `<div class="mtr" style="${!has?'opacity:0.3':''}" onclick="goMonth(${m})"><span class="mtr-name">${MF[m]}</span><span class="mtr-num" style="color:var(--green)">${mI>0?'+'+fmtS(mI):'—'}</span><span class="mtr-num" style="color:var(--red)">${mO>0?'-'+fmtS(mO):'—'}</span><span class="mtr-num" style="color:${bc};font-weight:600">${has?(mB>=0?'+':'-')+fmtS(mB):'—'}</span></div>`;
+  tbl.innerHTML=`<div class="mtr hdr">${L("mesiTabella")}</span><span style="text-align:right">${L("entrateTbl")}</span><span style="text-align:right">${L("speseTbl")}</span><span style="text-align:right">${L("saldoTbl")}</div>`
+  +MI().map((mn,m)=>{const mI=eD[m],mO=sD[m],mB=parseFloat((mI-mO).toFixed(2));const bc=mB>0?'var(--green)':mB<0?'var(--red)':'var(--muted)';const has=mI>0||mO>0;
+    return `<div class="mtr" style="${!has?'opacity:0.3':''}" onclick="goMonth(${m})"><span class="mtr-name">${MF()[m]}</span><span class="mtr-num" style="color:var(--green)">${mI>0?'+'+fmtS(mI):'—'}</span><span class="mtr-num" style="color:var(--red)">${mO>0?'-'+fmtS(mO):'—'}</span><span class="mtr-num" style="color:${bc};font-weight:600">${has?(mB>=0?'+':'-')+fmtS(mB):'—'}</span></div>`;
   }).join('');
 }
 
@@ -799,7 +1012,7 @@ function renderImpost(){
 }
 
 function goMonth(m){vMonth=m;switchPage('mese');}
-function updateLabel(){document.getElementById('period-label').textContent=page==='mese'?MI[vMonth]+' '+vYear:''+vYear;}
+function updateLabel(){document.getElementById('period-label').textContent=page==='mese'?MI()[vMonth]+' '+vYear:''+vYear;}
 function render(){updateLabel();if(page==='mese')renderMese();else if(page==='anno')renderAnno();}
 
 document.getElementById('prev-btn').onclick=()=>{if(page==='mese'){vMonth--;if(vMonth<0){vMonth=11;vYear--;}}else vYear--;render();};
@@ -814,21 +1027,21 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 function exportJSON(){
   const blob=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),transactions:txs},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget-backup-'+today()+'.json';a.click();
-  showToast('✅ JSON esportato');
+  showToast(L('jsonEsp'));
 }
 function exportCSV(){
   const rows=txs.sort((a,b)=>a.date.localeCompare(b.date)).map(t=>[t.date,t.type==='e'?'Entrata':'Spesa',t.cat,'"'+t.desc.replace(/"/g,'""')+'"',(t.type==='e'?t.amt:-t.amt).toFixed(2)].join(','));
   const blob=new Blob(['\uFEFF'+'Data,Tipo,Categoria,Descrizione,Importo\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget-'+today()+'.csv';a.click();
-  showToast('✅ CSV esportato');
+  showToast(L('csvEsp'));
 }
 async function importJSON(event){
   const file=event.target.files[0];if(!file)return;
   try{
     const data=JSON.parse(await file.text());
     const items=data.transactions||data;
-    if(!Array.isArray(items)||!items.length){showToast('❌ File non valido');return;}
-    const add=confirm(`Trovati ${items.length} movimenti.\nOK = Aggiungi   Annulla = Sostituisci`);
+    if(!Array.isArray(items)||!items.length){showToast(L('fileInvalido'));return;}
+    const add=confirm(`${L('trovati')} ${items.length} ${L('movImportati')}`);
     if(!add){await Promise.all(txs.map(t=>idbDel(ST,t.id)));txs=[];}
     const ids=new Set(txs.map(t=>t.id));let n=0;
     for(const item of items){
@@ -838,16 +1051,16 @@ async function importJSON(event){
       if(syncEnabled&&isOnline) sbUpsert(item);
       txs.push(item);n++;
     }
-    event.target.value='';render();renderImpost();showToast(`✅ ${n} movimenti importati`);
-  }catch(e){showToast('❌ Errore importazione');console.error(e);}
+    event.target.value='';render();renderImpost();showToast(`✅ ${n} ${L('movImportatiOk')}`);
+  }catch(e){showToast(L('errImport'));console.error(e);}
 }
 async function resetDB(){
-  if(!confirm(`Cancellare TUTTI i ${txs.length} movimenti?\nQuesta azione è irreversibile.`))return;
-  if(syncEnabled&&isOnline&&confirm('Cancellare anche dal cloud (Supabase)?')){
+  if(!confirm(`${L('cancellaConf')} ${txs.length} ${L('cancellaConf2')}`))return;
+  if(syncEnabled&&isOnline&&confirm(L('cancellaCloud'))){
     for(const t of txs) await sbDelete(t.id);
   }
   await idbClear(ST);await idbClear(QST);txs=[];
-  render();renderImpost();showToast('🗑️ Dati cancellati');
+  render();renderImpost();showToast(L('datiCancellati'));
 }
 
 // ═══════════════════════════════════════════
@@ -862,6 +1075,7 @@ function dismissBanner(){localStorage.setItem('install_dismissed','1');document.
 // ═══════════════════════════════════════════
 async function startApp(){
   document.getElementById('inp-date').value=today();
+  applyLang();
   fillCats();
   await openDB();
   txs=await idbAll(ST);
