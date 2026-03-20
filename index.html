@@ -366,7 +366,17 @@ async function sbUpsert(item){
   const row={...item,description:item.desc};delete row.desc;
   return sbFetch('transactions',{method:'POST',headers:{...sbH(),Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
 }
-async function sbDelete(id){return sbFetch(`transactions?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({deleted:true,updated_at:new Date().toISOString()})});}
+async function sbDelete(id){
+  if(!syncEnabled)return null;
+  try{
+    const r=await fetch(sbUrl+'/rest/v1/transactions?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':sbKey,'Authorization':'Bearer '+sbKey,'Prefer':'return=minimal'},
+      body:JSON.stringify({deleted:true,updated_at:new Date().toISOString()})
+    });
+    return r.ok?null:undefined;
+  }catch(e){console.warn('sbDelete error:',e);return undefined;}
+}
 async function sbGetAll(){return sbFetch('transactions?deleted=eq.false&order=date.asc');}
 
 // ─── REALTIME ─────────────────────────────────────────────────
@@ -570,10 +580,28 @@ async function saveTx(){
   }
 }
 async function deleteTx(id){
-  txs=txs.filter(t=>t.id!==id);await idbDel(ST,id);render();
+  txs=txs.filter(t=>t.id!==id);
+  await idbDel(ST,id);
+  render();
   if(syncEnabled){
-    if(isOnline)sbDelete(id).then(()=>setSyncStatus('online'));
-    else idbPut(QST,{id:id+'_del',op:'delete',id_ref:id});
+    if(isOnline){
+      setSyncStatus('syncing');
+      const ok=await sbDelete(id);
+      if(ok!==undefined){
+        setSyncStatus('online');
+        showToast('Movimento eliminato');
+      } else {
+        await idbPut(QST,{id:id+'_del',op:'delete',id_ref:id});
+        setSyncStatus('error');
+        showToast('Eliminato in locale, sync in attesa');
+      }
+    } else {
+      await idbPut(QST,{id:id+'_del',op:'delete',id_ref:id});
+      updateQueueCount();
+      showToast('Eliminato, sync al prossimo collegamento');
+    }
+  } else {
+    showToast('Movimento eliminato');
   }
 }
 
