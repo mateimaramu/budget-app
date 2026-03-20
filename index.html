@@ -421,11 +421,9 @@ const LANGS={
       syncCompletata:'✅ Sincronizzazione completata', syncNonConf:'⚠️ Sincronizzazione non configurata',
       offline:'📴 Sei offline', jsonEsp:'✅ JSON esportato', csvEsp:'✅ CSV esportato',
       errImport:'❌ Errore importazione', fileInvalido:'❌ File non valido',
-      trovati:'Trovati', movImportati:'movimenti.
-OK = Aggiungi   Annulla = Sostituisci',
+      trovati:'Trovati', movImportati:'movimenti.\nOK = Aggiungi   Annulla = Sostituisci',
       movImportatiOk:'movimenti importati', cancellaConf:'Cancellare TUTTI i',
-      cancellaConf2:'movimenti?
-Questa azione è irreversibile.',
+      cancellaConf2:'movimenti?\nQuesta azione è irreversibile.',
       cancellaCloud:'Cancellare anche dal cloud (Supabase)?',
       datiCancellati:'🗑️ Dati cancellati', sincronizzato:'sincronizzato', syncing:'sync...', errore:'errore',
       mesiTabella:'Mese', entrateTbl:'Entrate', speseTbl:'Spese', saldoTbl:'Saldo',
@@ -464,11 +462,9 @@ Questa azione è irreversibile.',
       syncCompletata:'✅ Sincronizare completată', syncNonConf:'⚠️ Sincronizare neconfigurată',
       offline:'📴 Ești offline', jsonEsp:'✅ JSON exportat', csvEsp:'✅ CSV exportat',
       errImport:'❌ Eroare import', fileInvalido:'❌ Fișier invalid',
-      trovati:'Găsite', movImportati:'tranzacții.
-OK = Adaugă   Anulare = Înlocuiește',
+      trovati:'Găsite', movImportati:'tranzacții.\nOK = Adaugă   Anulare = Înlocuiește',
       movImportatiOk:'tranzacții importate', cancellaConf:'Șterge TOATE cele',
-      cancellaConf2:'tranzacții?
-Această acțiune este ireversibilă.',
+      cancellaConf2:'tranzacții?\nAceastă acțiune este ireversibilă.',
       cancellaCloud:'Șterge și din cloud (Supabase)?',
       datiCancellati:'🗑️ Date șterse', sincronizzato:'sincronizat', syncing:'sync...', errore:'eroare',
       mesiTabella:'Lună', entrateTbl:'Venituri', speseTbl:'Cheltuieli', saldoTbl:'Sold',
@@ -507,11 +503,9 @@ Această acțiune este ireversibilă.',
       syncCompletata:'✅ Sync completed', syncNonConf:'⚠️ Sync not configured',
       offline:'📴 You are offline', jsonEsp:'✅ JSON exported', csvEsp:'✅ CSV exported',
       errImport:'❌ Import error', fileInvalido:'❌ Invalid file',
-      trovati:'Found', movImportati:'transactions.
-OK = Add   Cancel = Replace',
+      trovati:'Found', movImportati:'transactions.\nOK = Add   Cancel = Replace',
       movImportatiOk:'transactions imported', cancellaConf:'Delete ALL',
-      cancellaConf2:'transactions?
-This action is irreversible.',
+      cancellaConf2:'transactions?\nThis action is irreversible.',
       cancellaCloud:'Also delete from cloud (Supabase)?',
       datiCancellati:'🗑️ Data deleted', sincronizzato:'synced', syncing:'syncing...', errore:'error',
       mesiTabella:'Month', entrateTbl:'Income', speseTbl:'Expenses', saldoTbl:'Balance',
@@ -587,7 +581,7 @@ function applyLang(){
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let cType='e', vYear=new Date().getFullYear(), vMonth=new Date().getMonth(), page='mese', currentLangLoaded=false;
+let cType='e', vYear=new Date().getFullYear(), vMonth=new Date().getMonth(), page='mese';
 let txs=[], charts={}, dp=null;
 let sbUrl='', sbKey='', syncEnabled=false;
 let offlineQueue=[]; // items pending sync
