@@ -11,17 +11,116 @@
 <title>Budget Personale</title>
 <link rel="manifest" href="manifest.json"/>
 <style>
-:root {
-  --bg: #0f172a; --surface: #1e293b; --surface2: #273549;
-  --border: rgba(255,255,255,0.08); --text: #f1f5f9; --muted: #94a3b8;
-  --green: #10b981; --green-dim: #064e35; --red: #f43f5e; --red-dim: #4c0519;
-  --amber: #f59e0b; --blue: #3b82f6; --radius: 16px; --radius-sm: 10px;
-  --safe-top: env(safe-area-inset-top,0px); --safe-bottom: env(safe-area-inset-bottom,0px);
+:root{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#273549;
+  --border:rgba(255,255,255,0.08);--text:#f1f5f9;--muted:#94a3b8;
+  --green:#10b981;--green-dim:#064e35;--red:#f43f5e;--red-dim:#4c0519;
+  --amber:#f59e0b;--blue:#3b82f6;--radius:16px;--radius-sm:10px;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;}
+.app{display:flex;flex-direction:column;height:100%;height:100dvh;}
+.topbar{padding:calc(var(--safe-top) + 14px) 16px 12px;background:var(--bg);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;}
+.topbar h1{font-size:20px;font-weight:700;letter-spacing:-0.5px;flex-shrink:0;}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);flex-shrink:0;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.sync-dot.online{background:var(--green);}.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}.sync-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.nav-controls{display:flex;align-items:center;gap:8px;}
+.nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.nav-btn:active{background:var(--surface2);}
+.period-label{font-size:12px;font-weight:500;color:var(--muted);min-width:80px;text-align:center;}
+.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:10px 0 calc(var(--safe-bottom) + 10px);flex-shrink:0;}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:none;color:var(--muted);cursor:pointer;padding:4px 0;font-size:10px;font-weight:500;letter-spacing:0.3px;}
+.bn-btn .bn-icon{font-size:20px;line-height:1;}
+.bn-btn.active{color:var(--green);}
+.page{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 16px 90px;}
+.page.active{display:block;}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.metric-wide{grid-column:1/-1;}
+.metric{background:var(--surface);border-radius:var(--radius);padding:16px;}
+.metric .lbl{font-size:11px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.metric .val{font-size:26px;font-weight:700;letter-spacing:-1px;}
+.val.green{color:var(--green);}.val.red{color:var(--red);}.val.amber{color:var(--amber);}.val.neutral{color:var(--text);}
+.metric .sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.section-title{font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
+.chart-card{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+.chart-card .chart-title{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:12px;}
+.chart-wrap{position:relative;}
+.cat-card{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+.cat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cat-row:last-child{margin-bottom:0;}
+.cat-icon{font-size:18px;width:28px;text-align:center;}
+.cat-info{flex:1;}
+.cat-name{font-size:13px;font-weight:500;}
+.cat-bar-bg{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:5px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:2px;}
+.cat-val{font-size:13px;font-weight:600;}
+.cat-val.red{color:var(--red);}.cat-val.green{color:var(--green);}
+.tx-list{background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
+.tx-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.tx-item:last-child{border-bottom:none;}
+.tx-emoji{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.tx-emoji.e{background:var(--green-dim);}.tx-emoji.s{background:var(--red-dim);}
+.tx-body{flex:1;min-width:0;}
+.tx-desc{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.tx-amt{font-size:15px;font-weight:700;flex-shrink:0;}
+.tx-amt.e{color:var(--green);}.tx-amt.s{color:var(--red);}
+.tx-del-btn{position:absolute;right:0;top:0;bottom:0;width:70px;background:var(--red);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transform:translateX(70px);transition:transform 0.2s;}
+.tx-item .tx-del-btn.visible{transform:translateX(0);}
+.tx-empty{padding:32px;text-align:center;color:var(--muted);font-size:14px;}
+.month-table{background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
+.mtr{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;padding:11px 14px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;}
+.mtr:last-child{border-bottom:none;}.mtr:active{background:var(--surface2);}
+.mtr.hdr{padding:8px 14px;cursor:default;}
+.mtr.hdr span{font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);}
+.mtr-name{font-size:14px;font-weight:500;}
+.mtr-num{font-size:13px;text-align:right;}
+.settings-group{background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
+.settings-row{display:flex;align-items:center;gap:14px;padding:15px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+.settings-row:last-child{border-bottom:none;}.settings-row:active{background:var(--surface2);}
+.sr-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sr-icon.blue{background:rgba(59,130,246,0.15);}.sr-icon.green{background:rgba(16,185,129,0.15);}
+.sr-icon.amber{background:rgba(245,158,11,0.15);}.sr-icon.red{background:rgba(244,63,94,0.15);}
+.sr-icon.purple{background:rgba(139,92,246,0.15);}
+.sr-body{flex:1;}
+.sr-title{font-size:15px;font-weight:500;}.sr-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.sr-arrow{color:var(--muted);font-size:16px;}
+.info-card{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.info-row:last-child{border-bottom:none;}.info-row .ik{color:var(--muted);}.info-row .iv{font-weight:500;}
+.fab{position:fixed;bottom:calc(var(--safe-bottom) + 70px);right:20px;width:56px;height:56px;border-radius:50%;border:none;background:var(--green);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 4px 20px rgba(16,185,129,0.4);display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s;z-index:100;}
+.fab:active{transform:scale(0.93);}.fab.open{background:var(--red);transform:rotate(45deg);}.fab.hidden{display:none;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.modal-backdrop.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px calc(var(--safe-bottom) + 28px);width:100%;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
+.modal-backdrop.open .modal{transform:translateY(0);}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
+.type-toggle{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:20px;}
+.type-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;background:none;color:var(--muted);}
+.type-btn.active.e{background:var(--green);color:#fff;}.type-btn.active.s{background:var(--red);color:#fff;}
+.field{margin-bottom:14px;}
+.field label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.4px;text-transform:uppercase;display:block;margin-bottom:6px;}
+.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;font-size:16px;color:var(--text);outline:none;-webkit-appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--green);}
+.field select option{background:var(--bg);}
+.save-btn{width:100%;padding:16px;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;}
+.save-btn.e{background:var(--green);color:#fff;}.save-btn.s{background:var(--red);color:#fff;}
+.save-btn:active{opacity:0.8;}
+.toast{position:fixed;bottom:calc(var(--safe-bottom) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);color:var(--text);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;white-space:nowrap;border:1px solid var(--border);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.install-banner{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;border:1px solid rgba(59,130,246,0.3);}
+.install-banner .icon{font-size:22px;}
+.install-banner .text{flex:1;font-size:13px;color:var(--muted);line-height:1.4;}
+.install-banner .text strong{color:var(--text);display:block;margin-bottom:2px;}
+.install-banner button{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;}
+.install-banner .close-banner{background:none;color:var(--muted);padding:4px;font-size:16px;}
 
-/* SETUP SCREEN */
+/* SETUP */
 .setup-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(var(--safe-top) + 40px) 24px 40px;overflow-y:auto;}
 .setup-screen.hidden{display:none;}
 .setup-logo{font-size:52px;margin-bottom:16px;}
@@ -43,150 +142,28 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .setup-skip{background:none;border:none;color:var(--muted);font-size:13px;margin-top:14px;cursor:pointer;padding:8px;}
 .sql-block{background:var(--bg);border-radius:var(--radius-sm);padding:12px;font-family:monospace;font-size:11px;color:var(--amber);line-height:1.7;word-break:break-all;border:1px solid var(--border);margin-top:10px;position:relative;}
 .copy-sql{position:absolute;top:8px;right:8px;background:var(--surface2);border:none;color:var(--muted);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;}
-
-/* APP LAYOUT */
-.app{display:flex;flex-direction:column;height:100%;height:100dvh;}
-.topbar{padding:calc(var(--safe-top) + 14px) 16px 12px;background:var(--bg);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;}
-.topbar h1{font-size:20px;font-weight:700;letter-spacing:-0.5px;flex-shrink:0;}
-.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);flex-shrink:0;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
-.sync-dot.online{background:var(--green);}
-.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}
-.sync-dot.error{background:var(--red);}
-.sync-dot.offline{background:var(--muted);}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.nav-controls{display:flex;align-items:center;gap:8px;}
-.nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.nav-btn:active{background:var(--surface2);}
-.period-label{font-size:12px;font-weight:500;color:var(--muted);min-width:80px;text-align:center;}
-
-.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:10px 0 calc(var(--safe-bottom) + 10px);flex-shrink:0;}
-.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:none;color:var(--muted);cursor:pointer;padding:4px 0;font-size:10px;font-weight:500;letter-spacing:0.3px;}
-.bn-btn .bn-icon{font-size:20px;line-height:1;}
-.bn-btn.active{color:var(--green);}
-@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-
-.page{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 16px 90px;}
-.page.active{display:block;}
-
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.metric-wide{grid-column:1/-1;}
-.metric{background:var(--surface);border-radius:var(--radius);padding:16px;}
-.metric .lbl{font-size:11px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.metric .val{font-size:26px;font-weight:700;letter-spacing:-1px;}
-.val.green{color:var(--green);} .val.red{color:var(--red);} .val.amber{color:var(--amber);} .val.neutral{color:var(--text);}
-.metric .sub{font-size:11px;color:var(--muted);margin-top:4px;}
-.section-title{font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
-.chart-card{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
-.chart-card .chart-title{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:12px;}
-.chart-wrap{position:relative;}
-.cat-card{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
-.cat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.cat-row:last-child{margin-bottom:0;}
-.cat-icon{font-size:18px;width:28px;text-align:center;}
-.cat-info{flex:1;}
-.cat-name{font-size:13px;font-weight:500;}
-.cat-bar-bg{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:5px;overflow:hidden;}
-.cat-bar-fill{height:100%;border-radius:2px;}
-.cat-val{font-size:13px;font-weight:600;}
-.cat-val.red{color:var(--red);} .cat-val.green{color:var(--green);}
-.tx-list{background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
-.tx-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
-.tx-item:last-child{border-bottom:none;}
-.tx-emoji{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.tx-emoji.e{background:var(--green-dim);} .tx-emoji.s{background:var(--red-dim);}
-.tx-body{flex:1;min-width:0;}
-.tx-desc{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tx-meta{font-size:12px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;}
-.tx-pending{font-size:10px;background:rgba(245,158,11,0.2);color:var(--amber);padding:1px 6px;border-radius:4px;}
-.tx-amt{font-size:15px;font-weight:700;flex-shrink:0;}
-.tx-amt.e{color:var(--green);} .tx-amt.s{color:var(--red);}
-.tx-del-btn{position:absolute;right:0;top:0;bottom:0;width:70px;background:var(--red);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transform:translateX(70px);transition:transform 0.2s;}
-.tx-item .tx-del-btn.visible{transform:translateX(0);}
-.tx-empty{padding:32px;text-align:center;color:var(--muted);font-size:14px;}
-.mtr{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;padding:11px 14px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;}
-.mtr:last-child{border-bottom:none;} .mtr:active{background:var(--surface2);}
-.mtr.hdr{padding:8px 14px;cursor:default;}
-.mtr.hdr span{font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);}
-.mtr-name{font-size:14px;font-weight:500;}
-.mtr-num{font-size:13px;text-align:right;}
-.month-table{background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
-
-/* SETTINGS */
-.settings-group{background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
-.settings-row{display:flex;align-items:center;gap:14px;padding:15px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
-.settings-row:last-child{border-bottom:none;} .settings-row:active{background:var(--surface2);}
-.sr-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sr-icon.blue{background:rgba(59,130,246,0.15);} .sr-icon.green{background:rgba(16,185,129,0.15);}
-.sr-icon.amber{background:rgba(245,158,11,0.15);} .sr-icon.red{background:rgba(244,63,94,0.15);}
-.sr-icon.purple{background:rgba(139,92,246,0.15);}
-.sr-body{flex:1;}
-.sr-title{font-size:15px;font-weight:500;} .sr-sub{font-size:12px;color:var(--muted);margin-top:2px;}
-.sr-arrow{color:var(--muted);font-size:16px;}
-.info-card{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
-.info-row:last-child{border-bottom:none;} .info-row .ik{color:var(--muted);} .info-row .iv{font-weight:500;}
-.sync-badge{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;}
-.sync-badge.ok{background:rgba(16,185,129,0.15);color:var(--green);}
-.sync-badge.off{background:rgba(148,163,184,0.15);color:var(--muted);}
-
-/* FAB / MODAL */
-.fab{position:fixed;bottom:calc(var(--safe-bottom) + 70px);right:20px;width:56px;height:56px;border-radius:50%;border:none;background:var(--green);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 4px 20px rgba(16,185,129,0.4);display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s;z-index:100;}
-.fab:active{transform:scale(0.93);} .fab.open{background:var(--red);transform:rotate(45deg);} .fab.hidden{display:none;}
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;}
-.modal-backdrop.open{opacity:1;pointer-events:all;}
-.modal{background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px calc(var(--safe-bottom) + 28px);width:100%;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
-.modal-backdrop.open .modal{transform:translateY(0);}
-.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
-.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
-.type-toggle{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:20px;}
-.type-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;background:none;color:var(--muted);}
-.type-btn.active.e{background:var(--green);color:#fff;} .type-btn.active.s{background:var(--red);color:#fff;}
-.field{margin-bottom:14px;}
-.field label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.4px;text-transform:uppercase;display:block;margin-bottom:6px;}
-.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;font-size:16px;color:var(--text);outline:none;-webkit-appearance:none;}
-.field input:focus,.field select:focus{border-color:var(--green);}
-.field select option{background:var(--bg);}
-.save-btn{width:100%;padding:16px;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;}
-.save-btn.e{background:var(--green);color:#fff;} .save-btn.s{background:var(--red);color:#fff;}
-.save-btn:active{opacity:0.8;}
-
-/* TOAST */
-.toast{position:fixed;bottom:calc(var(--safe-bottom) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);color:var(--text);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;white-space:nowrap;border:1px solid var(--border);}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-/* INSTALL BANNER */
-.install-banner{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;border:1px solid rgba(59,130,246,0.3);}
-.install-banner .icon{font-size:22px;}
-.install-banner .text{flex:1;font-size:13px;color:var(--muted);line-height:1.4;}
-.install-banner .text strong{color:var(--text);display:block;margin-bottom:2px;}
-.install-banner button{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;}
-.install-banner .close-banner{background:none;color:var(--muted);padding:4px;font-size:16px;}
 </style>
 </head>
 <body>
 
-<!-- ═══ SETUP SCREEN ═══ -->
+<!-- SETUP -->
 <div class="setup-screen hidden" id="setup-screen">
   <div class="setup-logo">💰</div>
-  <div class="setup-title">Configura la sincronizzazione</div>
-  <div class="setup-sub">Collega Supabase per sincronizzare i dati tra Android e iPhone in tempo reale.</div>
-
+  <div class="setup-title">Configura sincronizzazione</div>
+  <div class="setup-sub">Collega Supabase per sincronizzare i dati tra i tuoi dispositivi in tempo reale.</div>
   <div class="setup-card">
     <h3>1 — Crea il progetto Supabase</h3>
-    <div class="setup-step"><div class="step-num">1</div><div class="step-text">Vai su <strong>supabase.com</strong> → "Start your project" → crea un account gratuito</div></div>
-    <div class="setup-step"><div class="step-num">2</div><div class="step-text">Clicca <strong>"New project"</strong>, dai un nome (es. <code>budget</code>), scegli una password e la regione più vicina (Europe West)</div></div>
-    <div class="setup-step"><div class="step-num">3</div><div class="step-text">Aspetta ~1 minuto che il progetto si avvii</div></div>
+    <div class="setup-step"><div class="step-num">1</div><div class="step-text">Vai su <strong>supabase.com</strong> → crea account gratuito → <strong>New project</strong></div></div>
+    <div class="setup-step"><div class="step-num">2</div><div class="step-text">Nome: <code>budget</code>, regione: <strong>Europe West</strong> → aspetta ~1 minuto</div></div>
   </div>
-
   <div class="setup-card">
     <h3>2 — Crea la tabella</h3>
-    <div class="setup-step"><div class="step-num">4</div><div class="step-text">Nel menu a sinistra clicca <strong>"SQL Editor"</strong> → "New query", incolla questo codice ed esegui con <strong>Run</strong></div></div>
+    <div class="setup-step"><div class="step-num">3</div><div class="step-text">Vai su <strong>SQL Editor → New query</strong>, incolla e clicca <strong>Run</strong></div></div>
     <div class="sql-block" id="sql-block">CREATE TABLE transactions (
   id BIGINT PRIMARY KEY,
   type TEXT NOT NULL,
   amt NUMERIC NOT NULL,
-  desc TEXT NOT NULL,
+  description TEXT NOT NULL,
   cat TEXT NOT NULL,
   date DATE NOT NULL,
   deleted BOOLEAN DEFAULT FALSE,
@@ -197,25 +174,17 @@ CREATE POLICY "public access" ON transactions
   FOR ALL USING (true) WITH CHECK (true);</div>
     <button class="copy-sql" onclick="copySql()">Copia</button>
   </div>
-
   <div class="setup-card">
-    <h3>3 — Copia le credenziali</h3>
-    <div class="setup-step"><div class="step-num">5</div><div class="step-text">Vai su <strong>Settings → API</strong> nel tuo progetto Supabase e copia i valori qui sotto</div></div>
-    <div class="setup-field">
-      <label>Project URL</label>
-      <input type="url" id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co"/>
-    </div>
-    <div class="setup-field">
-      <label>Anon (public) Key</label>
-      <input type="text" id="sb-key" placeholder="eyJhbGci..."/>
-    </div>
+    <h3>3 — Inserisci le credenziali</h3>
+    <div class="setup-step"><div class="step-num">4</div><div class="step-text">Vai su <strong>Settings → API</strong> e copia i valori qui sotto</div></div>
+    <div class="setup-field"><label>Project URL</label><input type="url" id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co"/></div>
+    <div class="setup-field"><label>Anon public key</label><input type="text" id="sb-key" placeholder="eyJhbGci..."/></div>
   </div>
-
   <button class="setup-btn" onclick="saveConfig()">Connetti e inizia →</button>
   <button class="setup-skip" onclick="skipSync()">Usa solo offline (senza sincronizzazione)</button>
 </div>
 
-<!-- ═══ MAIN APP ═══ -->
+<!-- APP -->
 <div class="app" id="main-app" style="display:none">
   <div class="topbar">
     <h1>💰 Budget</h1>
@@ -230,124 +199,95 @@ CREATE POLICY "public access" ON transactions
     </div>
   </div>
 
-  <!-- PAGE MESE -->
+  <!-- MESE -->
   <div class="page active" id="page-mese">
     <div id="install-banner-wrap"></div>
     <div class="metrics">
-      <div class="metric"><div class="lbl" id="lbl-entrate">Entrate</div><div class="val green" id="m-in">€0</div></div>
-      <div class="metric"><div class="lbl" id="lbl-spese">Spese</div><div class="val red" id="m-out">€0</div></div>
-      <div class="metric metric-wide">
-        <div class="lbl" id="lbl-saldo">Saldo del mese</div>
-        <div class="val neutral" id="m-bal">€0</div>
-        <div class="sub" id="m-sub"></div>
-      </div>
+      <div class="metric"><div class="lbl">Entrate</div><div class="val green" id="m-in">€0</div></div>
+      <div class="metric"><div class="lbl">Spese</div><div class="val red" id="m-out">€0</div></div>
+      <div class="metric metric-wide"><div class="lbl">Saldo del mese</div><div class="val neutral" id="m-bal">€0</div><div class="sub" id="m-sub"></div></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-title" id="ct-ultimi6">Ultimi 6 mesi</div>
-      <div class="chart-wrap" style="height:140px"><canvas id="chart-mese"></canvas></div>
-    </div>
-    <div class="section-title" id="st-spesecat-mese">Spese per categoria</div>
+    <div class="chart-card"><div class="chart-title">Ultimi 6 mesi</div><div class="chart-wrap" style="height:140px"><canvas id="chart-mese"></canvas></div></div>
+    <div class="section-title">Spese per categoria</div>
     <div class="cat-card" id="cat-mese"><div class="tx-empty">Nessuna spesa</div></div>
-    <div class="section-title" id="st-movimenti">Movimenti</div>
+    <div class="section-title">Movimenti</div>
     <div class="tx-list" id="tx-list"><div class="tx-empty">Nessun movimento</div></div>
   </div>
 
-  <!-- PAGE ANNO -->
+  <!-- ANNO -->
   <div class="page" id="page-anno">
     <div class="metrics">
-      <div class="metric"><div class="lbl" id="lbl-entrate-anno">Entrate annue</div><div class="val green" id="a-in">€0</div></div>
-      <div class="metric"><div class="lbl" id="lbl-spese-anno">Spese annue</div><div class="val red" id="a-out">€0</div></div>
-      <div class="metric"><div class="lbl" id="lbl-saldo-anno">Saldo annuale</div><div class="val neutral" id="a-bal">€0</div></div>
-      <div class="metric"><div class="lbl" id="lbl-tasso">Tasso risparmio</div><div class="val amber" id="a-rate">0%</div><div class="sub" id="a-rate-sub"></div></div>
+      <div class="metric"><div class="lbl">Entrate annue</div><div class="val green" id="a-in">€0</div></div>
+      <div class="metric"><div class="lbl">Spese annue</div><div class="val red" id="a-out">€0</div></div>
+      <div class="metric"><div class="lbl">Saldo annuale</div><div class="val neutral" id="a-bal">€0</div></div>
+      <div class="metric"><div class="lbl">Tasso risparmio</div><div class="val amber" id="a-rate">0%</div><div class="sub" id="a-rate-sub"></div></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-title" id="ct-tutti-mesi">Entrate vs Spese — tutti i mesi</div>
-      <div class="chart-wrap" style="height:160px"><canvas id="chart-anno"></canvas></div>
-    </div>
-    <div class="section-title" id="st-saldo-cumul">Saldo cumulativo</div>
-    <div class="chart-card">
-      <div class="chart-title" id="ct-andamento">Andamento saldo nell'anno</div>
-      <div class="chart-wrap" style="height:120px"><canvas id="chart-cumul"></canvas></div>
-    </div>
-    <div class="section-title" id="st-spesecat-anno">Spese per categoria</div>
+    <div class="chart-card"><div class="chart-title">Entrate vs Spese — tutti i mesi</div><div class="chart-wrap" style="height:160px"><canvas id="chart-anno"></canvas></div></div>
+    <div class="section-title">Saldo cumulativo</div>
+    <div class="chart-card"><div class="chart-title">Andamento saldo nell'anno</div><div class="chart-wrap" style="height:120px"><canvas id="chart-cumul"></canvas></div></div>
+    <div class="section-title">Spese per categoria</div>
     <div class="cat-card" id="cat-spese-anno"><div class="tx-empty">Nessuna spesa</div></div>
-    <div class="section-title" id="st-entratecat-anno">Entrate per categoria</div>
+    <div class="section-title">Entrate per categoria</div>
     <div class="cat-card" id="cat-entrate-anno"><div class="tx-empty">Nessuna entrata</div></div>
-    <div class="section-title" id="st-dettaglio">Dettaglio mese per mese</div>
+    <div class="section-title">Dettaglio mese per mese</div>
     <div class="month-table" id="month-table"></div>
   </div>
 
-  <!-- PAGE IMPOSTAZIONI -->
+  <!-- DATI -->
   <div class="page" id="page-impost">
-    <div class="section-title" id="st-sincro">Sincronizzazione</div>
+    <div class="section-title">Sincronizzazione</div>
     <div class="info-card">
-      <div class="info-row"><span class="ik" id="ik-stato">Stato</span><span class="iv" id="cfg-stato">—</span></div>
-      <div class="info-row"><span class="ik" id="ik-progetto">Progetto</span><span class="iv" id="cfg-url">—</span></div>
-      <div class="info-row"><span class="ik" id="ik-coda">In coda offline</span><span class="iv" id="cfg-queue">0 movimenti</span></div>
+      <div class="info-row"><span class="ik">Stato</span><span class="iv" id="cfg-stato">—</span></div>
+      <div class="info-row"><span class="ik">Progetto</span><span class="iv" id="cfg-url">—</span></div>
+      <div class="info-row"><span class="ik">In coda offline</span><span class="iv" id="cfg-queue">0 movimenti</span></div>
     </div>
     <div class="settings-group">
       <div class="settings-row" onclick="manualSync()">
         <div class="sr-icon blue">🔄</div>
-        <div class="sr-body"><div class="sr-title" id="sr-sync-ora">Sincronizza ora</div><div class="sr-sub" id="sr-sync-ora-sub">Forza aggiornamento dal cloud</div></div>
+        <div class="sr-body"><div class="sr-title">Sincronizza ora</div><div class="sr-sub">Forza aggiornamento dal cloud</div></div>
         <span class="sr-arrow">›</span>
       </div>
       <div class="settings-row" onclick="showSetup()">
         <div class="sr-icon purple">🔧</div>
-        <div class="sr-body"><div class="sr-title" id="sr-modifica">Modifica configurazione</div><div class="sr-sub" id="sr-modifica-sub">Cambia progetto Supabase</div></div>
+        <div class="sr-body"><div class="sr-title">Modifica configurazione</div><div class="sr-sub">Cambia progetto Supabase</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
-
-    <div class="section-title" id="st-db">Database locale</div>
+    <div class="section-title">Database locale</div>
     <div class="info-card">
-      <div class="info-row"><span class="ik" id="ik-movtotali">Movimenti totali</span><span class="iv" id="db-count">—</span></div>
-      <div class="info-row"><span class="ik" id="ik-primo">Primo movimento</span><span class="iv" id="db-first">—</span></div>
-      <div class="info-row"><span class="ik" id="ik-ultimo">Ultimo movimento</span><span class="iv" id="db-last">—</span></div>
-      <div class="info-row"><span class="ik" id="ik-dim">Dimensione stimata</span><span class="iv" id="db-size">—</span></div>
+      <div class="info-row"><span class="ik">Posizione</span><span class="iv">IndexedDB (dispositivo)</span></div>
+      <div class="info-row"><span class="ik">Movimenti totali</span><span class="iv" id="db-count">—</span></div>
+      <div class="info-row"><span class="ik">Primo movimento</span><span class="iv" id="db-first">—</span></div>
+      <div class="info-row"><span class="ik">Ultimo movimento</span><span class="iv" id="db-last">—</span></div>
+      <div class="info-row"><span class="ik">Dimensione stimata</span><span class="iv" id="db-size">—</span></div>
     </div>
-
-    <div class="section-title" id="st-esporta">Esporta</div>
+    <div class="section-title">Esporta</div>
     <div class="settings-group">
       <div class="settings-row" onclick="exportJSON()">
         <div class="sr-icon blue">📤</div>
-        <div class="sr-body"><div class="sr-title" id="sr-json">Esporta JSON</div><div class="sr-sub" id="sr-json-sub">Backup completo, reimportabile</div></div>
+        <div class="sr-body"><div class="sr-title">Esporta JSON</div><div class="sr-sub">Backup completo, reimportabile</div></div>
         <span class="sr-arrow">›</span>
       </div>
       <div class="settings-row" onclick="exportCSV()">
         <div class="sr-icon green">📊</div>
-        <div class="sr-body"><div class="sr-title" id="sr-csv">Esporta CSV</div><div class="sr-sub" id="sr-csv-sub">Per Excel o Fogli Google</div></div>
+        <div class="sr-body"><div class="sr-title">Esporta CSV</div><div class="sr-sub">Per Excel o Fogli Google</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
-
-    <div class="section-title" id="st-importa">Importa</div>
+    <div class="section-title">Importa</div>
     <div class="settings-group">
       <div class="settings-row" onclick="document.getElementById('import-file').click()">
         <div class="sr-icon amber">📥</div>
-        <div class="sr-body"><div class="sr-title" id="sr-import">Importa da JSON</div><div class="sr-sub" id="sr-import-sub">Ripristina un backup precedente</div></div>
+        <div class="sr-body"><div class="sr-title">Importa da JSON</div><div class="sr-sub">Ripristina un backup precedente</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)"/>
-
-    <div class="section-title" id="st-lingua">Lingua</div>
-    <div class="settings-group">
-      <div class="settings-row" style="cursor:default">
-        <div class="sr-icon" style="background:rgba(16,185,129,0.15);font-size:20px">🌐</div>
-        <div class="sr-body"><div class="sr-title" id="st-seleziona-lingua">Seleziona lingua</div></div>
-        <select id="lang-select" onchange="setLang(this.value)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer;-webkit-appearance:none;">
-          <option value="it">🇮🇹 Italiano</option>
-          <option value="ro">🇷🇴 Română</option>
-          <option value="en">🇬🇧 English</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="section-title" id="st-pericolo">Zona pericolo</div>
+    <div class="section-title">Zona pericolo</div>
     <div class="settings-group">
       <div class="settings-row" onclick="resetDB()">
         <div class="sr-icon red">🗑️</div>
-        <div class="sr-body"><div class="sr-title" id="st-cancella">Cancella tutti i dati</div><div class="sr-sub" id="st-cancella-sub">Locale e cloud — irreversibile</div></div>
+        <div class="sr-body"><div class="sr-title">Cancella tutti i dati</div><div class="sr-sub">Locale e cloud — irreversibile</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
@@ -367,374 +307,81 @@ CREATE POLICY "public access" ON transactions
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-title">Nuovo movimento</div>
+    <div class="modal-title">Nuovo movimento</div>
     <div class="type-toggle">
       <button class="type-btn active e" id="type-e" onclick="setType('e')">+ Entrata</button>
       <button class="type-btn s" id="type-s" onclick="setType('s')">− Spesa</button>
     </div>
-    <div class="field"><label id="lbl-importo">Importo €</label><input type="number" id="inp-amt" inputmode="decimal" placeholder="0.00" step="0.01"/></div>
-    <div class="field"><label id="lbl-descrizione">Descrizione</label><input type="text" id="inp-desc" placeholder="es. Stipendio"/></div>
-    <div class="field"><label id="lbl-categoria">Categoria</label><select id="inp-cat"></select></div>
-    <div class="field"><label id="lbl-data">Data</label><input type="date" id="inp-date"/></div>
+    <div class="field"><label>Importo €</label><input type="number" id="inp-amt" inputmode="decimal" placeholder="0.00" step="0.01"/></div>
+    <div class="field"><label>Descrizione</label><input type="text" id="inp-desc" placeholder="es. Stipendio"/></div>
+    <div class="field"><label>Categoria</label><select id="inp-cat"></select></div>
+    <div class="field"><label>Data</label><input type="date" id="inp-date"/></div>
     <button class="save-btn e" id="save-btn" onclick="saveTx()">Salva entrata</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ═══════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════
-// ═══════════════════════════════════════════
-// I18N — TRANSLATIONS
-// ═══════════════════════════════════════════
-// Stable keys saved to DB — never change these
-const CAT_KEYS={
-  e:['salary','freelance','rent_in','investments','gift','reimbursement','other_in'],
-  s:['home','food','transport','health','entertainment','clothing','bills','subscriptions','restaurant','sport','other_out']
+// ─── CATEGORIE ───────────────────────────────────────────────
+const CATS={
+  e:['Stipendio','Freelance','Affitto ricevuto','Investimenti','Regalo','Rimborso','Altro'],
+  s:['Casa','Cibo & Spesa','Trasporti','Salute','Svago','Abbigliamento','Bollette','Abbonamenti','Ristorante','Sport','Altro']
 };
-
-// Translate a category key to current language label
-function catLabel(key){
-  const map=LANGS[currentLang]?.cats||LANGS['it'].cats;
-  return map[key]||key;
-}
-// Normalize a category to its stable key
-// Handles: already-a-key, legacy Italian labels, any language labels
-function catKey(labelOrKey){
-  const allKeys=[...CAT_KEYS.e,...CAT_KEYS.s];
-  // Already a valid key
-  if(allKeys.includes(labelOrKey)) return labelOrKey;
-  // Search in all language label maps
-  for(const lang of Object.values(LANGS)){
-    for(const [k,v] of Object.entries(lang.cats)){
-      if(v===labelOrKey) return k;
-    }
-  }
-  return labelOrKey; // unknown — keep as-is
-}
-
-const LANGS={
-  it:{
-    cats:{salary:'Stipendio',freelance:'Freelance',rent_in:'Affitto ricevuto',investments:'Investimenti',gift:'Regalo',reimbursement:'Rimborso',other_in:'Altro',home:'Casa',food:'Cibo & Spesa',transport:'Trasporti',health:'Salute',entertainment:'Svago',clothing:'Abbigliamento',bills:'Bollette',subscriptions:'Abbonamenti',restaurant:'Ristorante',sport:'Sport',other_out:'Altro'},
-    mi:['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'],
-    mf:['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
-    t:{
-      title:'💰 Budget',
-      entrate:'Entrate', spese:'Spese', saldo:'Saldo del mese', saldoAnno:'Saldo annuale',
-      entrateAnno:'Entrate annue', speseAnno:'Spese annue', tassoRisparmio:'Tasso risparmio',
-      ultimi6:'Ultimi 6 mesi', tuttiMesi:'Entrate vs Spese — tutti i mesi',
-      andamentoSaldo:"Andamento saldo nell'anno", saldoCumul:'Saldo cumulativo',
-      speseCateg:'Spese per categoria', entrateCateg:'Entrate per categoria',
-      dettaglio:'Dettaglio mese per mese', movimenti:'Movimenti', nessunMov:'Nessun movimento questo mese',
-      nessunaDato:'Nessun dato', nessunaSpesa:'Nessuna spesa', nessunEntrata:'Nessuna entrata',
-      nuovoMov:'Nuovo movimento', entrata:'+ Entrata', spesa:'− Spesa',
-      importo:'Importo €', descrizione:'Descrizione', categoria:'Categoria', data:'Data',
-      salvaEntrata:'Salva entrata', salvaSpesa:'Salva spesa', compila:'Compila tutti i campi',
-      sincro:'Sincronizzazione', dbLocale:'Database locale', posizione:'Posizione',
-      posizioneVal:'IndexedDB (dispositivo)', movTotali:'Movimenti totali', primoMov:'Primo movimento',
-      ultimoMov:'Ultimo movimento', dimStimata:'Dimensione stimata', inCoda:'In coda offline',
-      esporta:'Esporta', esportaJSON:'Esporta JSON', esportaJSONsub:'Backup completo, reimportabile',
-      esportaCSV:'Esporta CSV', esportaCSVsub:'Per Excel o Fogli Google',
-      importa:'Importa', importaJSON:'Importa da JSON', importaJSONsub:'Ripristina un backup precedente',
-      lingua:'Lingua', selLingua:'Seleziona lingua',
-      pericolo:'Zona pericolo', cancella:'Cancella tutti i dati', cancellaSub:'Locale e cloud — irreversibile',
-      stato:'Stato', progetto:'Progetto', modificaConf:'Modifica configurazione', modificaConfSub:'Cambia progetto Supabase',
-      syncOra:'Sincronizza ora', syncOraSub:'Forza aggiornamento dal cloud',
-      mese:'Mese', anno:'Anno', sync:'Sync', dati:'Dati',
-      connesso:'🟢 Connesso e sincronizzato', configOffline:'🟡 Configurato, ora offline', soloLocale:'⚪ Solo locale',
-      ottimo:'🌟 Ottimo risparmio', buono:'👍 Buon risparmio', basso:'⚠️ Basso', deficit:'🔴 Deficit',
-      syncCompletata:'✅ Sincronizzazione completata', syncNonConf:'⚠️ Sincronizzazione non configurata',
-      offline:'📴 Sei offline', jsonEsp:'✅ JSON esportato', csvEsp:'✅ CSV esportato',
-      errImport:'❌ Errore importazione', fileInvalido:'❌ File non valido',
-      trovati:'Trovati', movImportati:'movimenti.\nOK = Aggiungi   Annulla = Sostituisci',
-      movImportatiOk:'movimenti importati', cancellaConf:'Cancellare TUTTI i',
-      cancellaConf2:'movimenti?\nQuesta azione è irreversibile.',
-      cancellaCloud:'Cancellare anche dal cloud (Supabase)?',
-      datiCancellati:'🗑️ Dati cancellati', sincronizzato:'sincronizzato', syncing:'sync...', errore:'errore',
-      mesiTabella:'Mese', entrateTbl:'Entrate', speseTbl:'Spese', saldoTbl:'Saldo',
-      esDesc:'es. Stipendio', elimina:'Elimina'
-    }
-  },
-  ro:{
-    cats:{salary:'Salariu',freelance:'Freelance',rent_in:'Chirie primită',investments:'Investiții',gift:'Cadou',reimbursement:'Rambursare',other_in:'Altele',home:'Casă',food:'Mâncare & Cumpărături',transport:'Transport',health:'Sănătate',entertainment:'Distracție',clothing:'Îmbrăcăminte',bills:'Facturi',subscriptions:'Abonamente',restaurant:'Restaurant',sport:'Sport',other_out:'Altele'},
-    mi:['Ian','Feb','Mar','Apr','Mai','Iun','Iul','Aug','Sep','Oct','Nov','Dec'],
-    mf:['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
-    t:{
-      title:'💰 Buget',
-      entrate:'Venituri', spese:'Cheltuieli', saldo:'Sold lunar', saldoAnno:'Sold anual',
-      entrateAnno:'Venituri anuale', speseAnno:'Cheltuieli anuale', tassoRisparmio:'Rata de economii',
-      ultimi6:'Ultimele 6 luni', tuttiMesi:'Venituri vs Cheltuieli — toate lunile',
-      andamentoSaldo:'Evoluția soldului în an', saldoCumul:'Sold cumulativ',
-      speseCateg:'Cheltuieli pe categorie', entrateCateg:'Venituri pe categorie',
-      dettaglio:'Detaliu lună cu lună', movimenti:'Tranzacții', nessunMov:'Nicio tranzacție luna aceasta',
-      nessunaDato:'Nicio dată', nessunaSpesa:'Nicio cheltuială', nessunEntrata:'Niciun venit',
-      nuovoMov:'Tranzacție nouă', entrata:'+ Venit', spesa:'− Cheltuială',
-      importo:'Sumă €', descrizione:'Descriere', categoria:'Categorie', data:'Data',
-      salvaEntrata:'Salvează venitul', salvaSpesa:'Salvează cheltuiala', compila:'Completează toate câmpurile',
-      sincro:'Sincronizare', dbLocale:'Bază de date locală', posizione:'Locație',
-      posizioneVal:'IndexedDB (dispozitiv)', movTotali:'Total tranzacții', primoMov:'Prima tranzacție',
-      ultimoMov:'Ultima tranzacție', dimStimata:'Dimensiune estimată', inCoda:'În așteptare offline',
-      esporta:'Export', esportaJSON:'Export JSON', esportaJSONsub:'Backup complet, reimportabil',
-      esportaCSV:'Export CSV', esportaCSVsub:'Pentru Excel sau Foi de calcul',
-      importa:'Import', importaJSON:'Import din JSON', importaJSONsub:'Restaurează un backup anterior',
-      lingua:'Limbă', selLingua:'Selectează limba',
-      pericolo:'Zonă de pericol', cancella:'Șterge toate datele', cancellaSub:'Local și cloud — ireversibil',
-      stato:'Stare', progetto:'Proiect', modificaConf:'Modifică configurația', modificaConfSub:'Schimbă proiectul Supabase',
-      syncOra:'Sincronizează acum', syncOraSub:'Forțează actualizarea din cloud',
-      mese:'Lună', anno:'An', sync:'Sync', dati:'Date',
-      connesso:'🟢 Conectat și sincronizat', configOffline:'🟡 Configurat, acum offline', soloLocale:'⚪ Doar local',
-      ottimo:'🌟 Economii excelente', buono:'👍 Economii bune', basso:'⚠️ Economii mici', deficit:'🔴 Deficit',
-      syncCompletata:'✅ Sincronizare completată', syncNonConf:'⚠️ Sincronizare neconfigurată',
-      offline:'📴 Ești offline', jsonEsp:'✅ JSON exportat', csvEsp:'✅ CSV exportat',
-      errImport:'❌ Eroare import', fileInvalido:'❌ Fișier invalid',
-      trovati:'Găsite', movImportati:'tranzacții.\nOK = Adaugă   Anulare = Înlocuiește',
-      movImportatiOk:'tranzacții importate', cancellaConf:'Șterge TOATE cele',
-      cancellaConf2:'tranzacții?\nAceastă acțiune este ireversibilă.',
-      cancellaCloud:'Șterge și din cloud (Supabase)?',
-      datiCancellati:'🗑️ Date șterse', sincronizzato:'sincronizat', syncing:'sync...', errore:'eroare',
-      mesiTabella:'Lună', entrateTbl:'Venituri', speseTbl:'Cheltuieli', saldoTbl:'Sold',
-      esDesc:'ex. Salariu', elimina:'Șterge'
-    }
-  },
-  en:{
-    cats:{salary:'Salary',freelance:'Freelance',rent_in:'Rent received',investments:'Investments',gift:'Gift',reimbursement:'Reimbursement',other_in:'Other',home:'Home',food:'Food & Shopping',transport:'Transport',health:'Health',entertainment:'Entertainment',clothing:'Clothing',bills:'Bills',subscriptions:'Subscriptions',restaurant:'Restaurant',sport:'Sport',other_out:'Other'},
-    mi:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-    mf:['January','February','March','April','May','June','July','August','September','October','November','December'],
-    t:{
-      title:'💰 Budget',
-      entrate:'Income', spese:'Expenses', saldo:'Monthly balance', saldoAnno:'Annual balance',
-      entrateAnno:'Annual income', speseAnno:'Annual expenses', tassoRisparmio:'Savings rate',
-      ultimi6:'Last 6 months', tuttiMesi:'Income vs Expenses — all months',
-      andamentoSaldo:'Balance trend during the year', saldoCumul:'Cumulative balance',
-      speseCateg:'Expenses by category', entrateCateg:'Income by category',
-      dettaglio:'Month by month breakdown', movimenti:'Transactions', nessunMov:'No transactions this month',
-      nessunaDato:'No data', nessunaSpesa:'No expenses', nessunEntrata:'No income',
-      nuovoMov:'New transaction', entrata:'+ Income', spesa:'− Expense',
-      importo:'Amount €', descrizione:'Description', categoria:'Category', data:'Date',
-      salvaEntrata:'Save income', salvaSpesa:'Save expense', compila:'Please fill in all fields',
-      sincro:'Synchronization', dbLocale:'Local database', posizione:'Location',
-      posizioneVal:'IndexedDB (device)', movTotali:'Total transactions', primoMov:'First transaction',
-      ultimoMov:'Last transaction', dimStimata:'Estimated size', inCoda:'Offline queue',
-      esporta:'Export', esportaJSON:'Export JSON', esportaJSONsub:'Full backup, re-importable',
-      esportaCSV:'Export CSV', esportaCSVsub:'Open with Excel or Google Sheets',
-      importa:'Import', importaJSON:'Import from JSON', importaJSONsub:'Restore a previous backup',
-      lingua:'Language', selLingua:'Select language',
-      pericolo:'Danger zone', cancella:'Delete all data', cancellaSub:'Local and cloud — irreversible',
-      stato:'Status', progetto:'Project', modificaConf:'Edit configuration', modificaConfSub:'Change Supabase project',
-      syncOra:'Sync now', syncOraSub:'Force update from cloud',
-      mese:'Month', anno:'Year', sync:'Sync', dati:'Data',
-      connesso:'🟢 Connected and synced', configOffline:'🟡 Configured, now offline', soloLocale:'⚪ Local only',
-      ottimo:'🌟 Excellent savings', buono:'👍 Good savings', basso:'⚠️ Low savings', deficit:'🔴 Deficit',
-      syncCompletata:'✅ Sync completed', syncNonConf:'⚠️ Sync not configured',
-      offline:'📴 You are offline', jsonEsp:'✅ JSON exported', csvEsp:'✅ CSV exported',
-      errImport:'❌ Import error', fileInvalido:'❌ Invalid file',
-      trovati:'Found', movImportati:'transactions.\nOK = Add   Cancel = Replace',
-      movImportatiOk:'transactions imported', cancellaConf:'Delete ALL',
-      cancellaConf2:'transactions?\nThis action is irreversible.',
-      cancellaCloud:'Also delete from cloud (Supabase)?',
-      datiCancellati:'🗑️ Data deleted', sincronizzato:'synced', syncing:'syncing...', errore:'error',
-      mesiTabella:'Month', entrateTbl:'Income', speseTbl:'Expenses', saldoTbl:'Balance',
-      esDesc:'e.g. Salary', elimina:'Delete'
-    }
-  }
+const ICONS={
+  'Stipendio':'💼','Freelance':'💻','Affitto ricevuto':'🏠','Investimenti':'📈','Regalo':'🎁','Rimborso':'↩️',
+  'Casa':'🏠','Cibo & Spesa':'🛒','Trasporti':'🚗','Salute':'💊','Svago':'🎮','Abbigliamento':'👔',
+  'Bollette':'⚡','Abbonamenti':'📱','Ristorante':'🍽️','Sport':'🏃','Altro':'💰'
 };
-
-let currentLang = localStorage.getItem('lang') || 'it';
-function L(key){ return LANGS[currentLang].t[key] || LANGS['it'].t[key] || key; }
-// CATS() kept for compatibility but fillCats uses CAT_KEYS directly
-function CATS(){ return LANGS[currentLang].cats; }
-function MI(){ return LANGS[currentLang].mi; }
-function MF(){ return LANGS[currentLang].mf; }
-
-
-// Static icon assignments
-// Icons indexed by stable category key
-const CAT_ICONS={
-  salary:'💼', freelance:'💻', rent_in:'🏠', investments:'📈', gift:'🎁', reimbursement:'↩️', other_in:'💰',
-  home:'🏠', food:'🛒', transport:'🚗', health:'💊', entertainment:'🎮', clothing:'👔',
-  bills:'⚡', subscriptions:'📱', restaurant:'🍽️', sport:'🏃', other_out:'💰'
-};
-function getIcon(cat){
-  return CAT_ICONS[catKey(cat)]||'💰';
-}
-
 const CLRS=['#10b981','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48'];
+const MI=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const MF=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 
-function setLang(lang){
-  currentLang=lang;
-  localStorage.setItem('lang',lang);
-  applyLang();
-  fillCats();
-  render();
-  if(page==='impost') renderImpost();
-}
-
-function applyLang(){
-  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  // Topbar
-  document.querySelector('.topbar h1').textContent=L('title');
-  // Bottom nav
-  document.getElementById('bn-mese').innerHTML=`<span class="bn-icon">📅</span>${L('mese')}`;
-  document.getElementById('bn-anno').innerHTML=`<span class="bn-icon">📊</span>${L('anno')}`;
-  document.getElementById('bn-sync').innerHTML=`<span class="bn-icon" id="sync-nav-icon">🔄</span>${L('sync')}`;
-  document.getElementById('bn-impost').innerHTML=`<span class="bn-icon">⚙️</span>${L('dati')}`;
-  // Modal
-  set('modal-title',L('nuovoMov'));
-  document.getElementById('type-e').textContent=L('entrata');
-  document.getElementById('type-s').textContent=L('spesa');
-  document.getElementById('inp-desc').placeholder=L('esDesc');
-  set('lbl-importo',L('importo'));
-  set('lbl-descrizione',L('descrizione'));
-  set('lbl-categoria',L('categoria'));
-  set('lbl-data',L('data'));
-  // Page mese
-  set('lbl-entrate',L('entrate'));
-  set('lbl-spese',L('spese'));
-  set('lbl-saldo',L('saldo'));
-  set('ct-ultimi6',L('ultimi6'));
-  set('st-spesecat-mese',L('speseCateg'));
-  set('st-movimenti',L('movimenti'));
-  // Page anno
-  set('lbl-entrate-anno',L('entrateAnno'));
-  set('lbl-spese-anno',L('speseAnno'));
-  set('lbl-saldo-anno',L('saldoAnno'));
-  set('lbl-tasso',L('tassoRisparmio'));
-  set('ct-tutti-mesi',L('tuttiMesi'));
-  set('st-saldo-cumul',L('saldoCumul'));
-  set('ct-andamento',L('andamentoSaldo'));
-  set('st-spesecat-anno',L('speseCateg'));
-  set('st-entratecat-anno',L('entrateCateg'));
-  set('st-dettaglio',L('dettaglio'));
-  // Settings page
-  set('st-sincro',L('sincro'));
-  set('st-db',L('dbLocale'));
-  set('st-esporta',L('esporta'));
-  set('st-importa',L('importa'));
-  set('st-lingua',L('lingua'));
-  set('st-seleziona-lingua',L('selLingua'));
-  set('st-pericolo',L('pericolo'));
-  set('st-cancella',L('cancella'));
-  set('st-cancella-sub',L('cancellaSub'));
-  set('sr-sync-ora',L('syncOra'));
-  set('sr-sync-ora-sub',L('syncOraSub'));
-  set('sr-modifica',L('modificaConf'));
-  set('sr-modifica-sub',L('modificaConfSub'));
-  set('sr-json',L('esportaJSON'));
-  set('sr-json-sub',L('esportaJSONsub'));
-  set('sr-csv',L('esportaCSV'));
-  set('sr-csv-sub',L('esportaCSVsub'));
-  set('sr-import',L('importaJSON'));
-  set('sr-import-sub',L('importaJSONsub'));
-  set('ik-stato',L('stato'));
-  set('ik-progetto',L('progetto'));
-  set('ik-movtotali',L('movTotali'));
-  set('ik-primo',L('primoMov'));
-  set('ik-ultimo',L('ultimoMov'));
-  set('ik-dim',L('dimStimata'));
-  set('ik-coda',L('inCoda'));
-  set('iv-posizione',L('posizioneVal'));
-  // Lang select value
-  const sel=document.getElementById('lang-select');
-  if(sel) sel.value=currentLang;
-}
-
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
+// ─── STATO ───────────────────────────────────────────────────
 let cType='e', vYear=new Date().getFullYear(), vMonth=new Date().getMonth(), page='mese';
 let txs=[], charts={}, dp=null;
 let sbUrl='', sbKey='', syncEnabled=false;
-let offlineQueue=[]; // items pending sync
-let realtimeSub=null;
 let isOnline=navigator.onLine;
 
-// ═══════════════════════════════════════════
-// INDEXEDDB (local cache + offline queue)
-// ═══════════════════════════════════════════
+// ─── INDEXEDDB ────────────────────────────────────────────────
 const DBN='budget_db',DBV=2,ST='transactions',QST='sync_queue'; let db;
-function openDB(){
-  return new Promise((r,j)=>{
-    const q=indexedDB.open(DBN,DBV);
-    q.onupgradeneeded=e=>{
-      const d=e.target.result;
-      if(!d.objectStoreNames.contains(ST)) d.createObjectStore(ST,{keyPath:'id'});
-      if(!d.objectStoreNames.contains(QST)) d.createObjectStore(QST,{keyPath:'id'});
-    };
-    q.onsuccess=e=>{db=e.target.result;r(db);};
-    q.onerror=j;
-  });
-}
-function idbAll(store){return new Promise((r,j)=>{const t=db.transaction(store,'readonly');const q=t.objectStore(store).getAll();q.onsuccess=()=>r(q.result);q.onerror=j;});}
-function idbPut(store,item){return new Promise((r,j)=>{const t=db.transaction(store,'readwrite');t.objectStore(store).put(item);t.oncomplete=r;t.onerror=j;});}
-function idbDel(store,id){return new Promise((r,j)=>{const t=db.transaction(store,'readwrite');t.objectStore(store).delete(id);t.oncomplete=r;t.onerror=j;});}
-function idbClear(store){return new Promise((r,j)=>{const t=db.transaction(store,'readwrite');t.objectStore(store).clear();t.oncomplete=r;t.onerror=j;});}
+function openDB(){return new Promise((r,j)=>{const q=indexedDB.open(DBN,DBV);q.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(ST))d.createObjectStore(ST,{keyPath:'id'});if(!d.objectStoreNames.contains(QST))d.createObjectStore(QST,{keyPath:'id'});};q.onsuccess=e=>{db=e.target.result;r(db);};q.onerror=j;});}
+function idbAll(s){return new Promise((r,j)=>{const t=db.transaction(s,'readonly');const q=t.objectStore(s).getAll();q.onsuccess=()=>r(q.result);q.onerror=j;});}
+function idbPut(s,i){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).put(i);t.oncomplete=r;t.onerror=j;});}
+function idbDel(s,id){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).delete(id);t.oncomplete=r;t.onerror=j;});}
+function idbClear(s){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).clear();t.oncomplete=r;t.onerror=j;});}
 
-// ═══════════════════════════════════════════
-// SUPABASE API HELPERS
-// ═══════════════════════════════════════════
-function sbHeaders(){return{'Content-Type':'application/json','apikey':sbKey,'Authorization':'Bearer '+sbKey,'Prefer':'return=minimal'};}
-
+// ─── SUPABASE ─────────────────────────────────────────────────
+function sbH(){return{'Content-Type':'application/json','apikey':sbKey,'Authorization':'Bearer '+sbKey,'Prefer':'return=minimal'};}
 async function sbFetch(path,opts={}){
-  if(!syncEnabled) return null;
-  try{
-    const r=await fetch(sbUrl+'/rest/v1/'+path,{headers:sbHeaders(),...opts});
-    if(!r.ok){const e=await r.text();throw new Error(e);}
-    return r.status===204?null:r.json();
-  }catch(e){console.warn('Supabase error:',e);return null;}
+  if(!syncEnabled)return null;
+  try{const r=await fetch(sbUrl+'/rest/v1/'+path,{headers:sbH(),...opts});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json();}
+  catch(e){console.warn('Supabase:',e);return null;}
 }
-
 async function sbUpsert(item){
-  // Map internal 'desc' to 'description' for Supabase (desc is reserved in PostgreSQL)
-  const row={...item, description:item.desc};
-  delete row.desc;
-  return sbFetch('transactions',{method:'POST',headers:{...sbHeaders(),Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
+  const row={...item,description:item.desc};delete row.desc;
+  return sbFetch('transactions',{method:'POST',headers:{...sbH(),Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
 }
+async function sbDelete(id){return sbFetch(`transactions?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({deleted:true,updated_at:new Date().toISOString()})});}
+async function sbGetAll(){return sbFetch('transactions?deleted=eq.false&order=date.asc');}
 
-async function sbDelete(id){
-  return sbFetch(`transactions?id=eq.${id}`,{method:'PATCH',body:JSON.stringify({deleted:true,updated_at:new Date().toISOString()})});
-}
-
-async function sbGetAll(){
-  const data=await sbFetch('transactions?deleted=eq.false&order=date.asc');
-  return data||[];
-}
-
-// ═══════════════════════════════════════════
-// REALTIME SUBSCRIPTION
-// ═══════════════════════════════════════════
+// ─── REALTIME ─────────────────────────────────────────────────
 function startRealtime(){
-  if(!syncEnabled||!sbUrl||!sbKey) return;
-  // Use Supabase Realtime via WebSocket
-  const wsUrl=sbUrl.replace('https://','wss://').replace('http://','ws://')+'/realtime/v1/websocket?apikey='+sbKey+'&vsn=1.0.0';
+  if(!syncEnabled||!sbUrl||!sbKey)return;
+  const wsUrl=sbUrl.replace('https://','wss://')+'/realtime/v1/websocket?apikey='+sbKey+'&vsn=1.0.0';
   let ws;
   function connect(){
     try{
       ws=new WebSocket(wsUrl);
-      ws.onopen=()=>{
-        ws.send(JSON.stringify({topic:'realtime:public:transactions',event:'phx_join',payload:{},ref:'1'}));
-        setSyncStatus('online');
-      };
-      ws.onmessage=e=>{
-        try{
-          const msg=JSON.parse(e.data);
-          if(msg.event==='INSERT'||msg.event==='UPDATE'||msg.event==='DELETE'){
-            // Remote change detected — refresh from cloud
-            setTimeout(()=>syncFromCloud(true),300);
-          }
-        }catch(_){}
-      };
-      ws.onclose=()=>{setSyncStatus('offline');setTimeout(connect,5000);}; // reconnect
+      ws.onopen=()=>{ws.send(JSON.stringify({topic:'realtime:public:transactions',event:'phx_join',payload:{},ref:'1'}));setSyncStatus('online');};
+      ws.onmessage=e=>{try{const m=JSON.parse(e.data);if(['INSERT','UPDATE','DELETE'].includes(m.event))setTimeout(()=>syncFromCloud(true),400);}catch(_){}};
+      ws.onclose=()=>{setSyncStatus('offline');setTimeout(connect,5000);};
       ws.onerror=()=>{setSyncStatus('offline');};
     }catch(_){setSyncStatus('offline');}
   }
   connect();
-  realtimeSub=ws;
 }
 
-// ═══════════════════════════════════════════
-// SYNC LOGIC
-// ═══════════════════════════════════════════
+// ─── SYNC ─────────────────────────────────────────────────────
 let spinTimer=null;
 function setSyncStatus(s,label){
   const dot=document.getElementById('sync-dot');
@@ -743,42 +390,24 @@ function setSyncStatus(s,label){
   const btn=document.getElementById('bn-sync');
   if(!dot)return;
   dot.className='sync-dot '+s;
-  lbl.textContent=label||(s==='online'?L('sincronizzato'):s==='syncing'?L('syncing'):s==='error'?L('errore'):'offline');
+  lbl.textContent=label||(s==='online'?'sincronizzato':s==='syncing'?'sync...':s==='error'?'errore':'offline');
   if(!icon||!btn)return;
-  if(s==='syncing'){
-    icon.style.display='inline-block';
-    icon.style.animation='spin 0.8s linear infinite';
-    btn.style.color='var(--amber)';
-  } else if(s==='online'){
-    icon.style.animation='none';
-    icon.textContent='✅';
-    btn.style.color='var(--green)';
-    clearTimeout(spinTimer);
-    spinTimer=setTimeout(()=>{icon.textContent='🔄';icon.style.animation='none';btn.style.color='';},2000);
-  } else if(s==='error'){
-    icon.style.animation='none';
-    icon.textContent='❌';
-    btn.style.color='var(--red)';
-  } else {
-    icon.style.animation='none';
-    icon.textContent='🔄';
-    btn.style.color='';
-  }
+  if(s==='syncing'){icon.style.animation='spin 0.8s linear infinite';btn.style.color='var(--amber)';}
+  else if(s==='online'){icon.style.animation='none';icon.textContent='✅';btn.style.color='var(--green)';clearTimeout(spinTimer);spinTimer=setTimeout(()=>{icon.textContent='🔄';icon.style.animation='none';btn.style.color='';},2000);}
+  else if(s==='error'){icon.style.animation='none';icon.textContent='❌';btn.style.color='var(--red)';}
+  else{icon.style.animation='none';icon.textContent='🔄';btn.style.color='';}
 }
 
 async function flushQueue(){
-  // Push all queued local operations to Supabase
   const queue=await idbAll(QST);
   if(!queue.length)return;
   setSyncStatus('syncing');
   let ok=true;
   for(const op of queue){
     let res;
-    if(op.op==='upsert') res=await sbUpsert(op.data);
-    else if(op.op==='delete') res=await sbDelete(op.id);
-    if(res!==undefined){ // null = 204 no content = ok
-      await idbDel(QST,op.id);
-    } else { ok=false; }
+    if(op.op==='upsert')res=await sbUpsert(op.data);
+    else if(op.op==='delete')res=await sbDelete(op.id_ref);
+    if(res!==undefined){await idbDel(QST,op.id);}else{ok=false;}
   }
   setSyncStatus(ok?'online':'error');
   updateQueueCount();
@@ -787,93 +416,59 @@ async function flushQueue(){
 async function syncFromCloud(silent=false){
   if(!syncEnabled||!isOnline)return;
   if(!silent)setSyncStatus('syncing');
-
   const remote=await sbGetAll();
   if(remote===null){setSyncStatus('error');return;}
-
-  // Build maps for efficient lookup
+  if(remote.length===0&&txs.length>0){for(const t of txs)await sbUpsert(t);setSyncStatus('online');return;}
   const remoteMap=new Map(remote.map(r=>[Number(r.id),r]));
   const localMap=new Map(txs.map(t=>[t.id,t]));
-
-  // Items in local but NOT in remote → push up to Supabase (never lose local data)
-  const toUpload=txs.filter(t=>!remoteMap.has(t.id));
-  for(const t of toUpload){
-    await sbUpsert(t);
-  }
-
-  // Items in remote but NOT in local → pull down and save locally
-  const toDownload=remote.filter(r=>!localMap.has(Number(r.id)));
-  for(const r of toDownload){
-    const item={id:Number(r.id),type:r.type,amt:parseFloat(r.amt),desc:r.description||r.desc||'',cat:r.cat,date:r.date};
-    await idbPut(ST,item);
-    txs.push(item);
-  }
-
-  // Items deleted remotely (in local but marked deleted=true on remote) → remove locally
-  const deletedRemote=new Set(
-    remote.filter(r=>r.deleted).map(r=>Number(r.id))
-  );
-  if(deletedRemote.size>0){
-    for(const id of deletedRemote){
-      if(localMap.has(id)){
-        txs=txs.filter(t=>t.id!==id);
-        await idbDel(ST,id);
-      }
+  // Push local-only items up
+  for(const t of txs){if(!remoteMap.has(t.id))await sbUpsert(t);}
+  // Pull remote-only items down
+  for(const r of remote){
+    if(!localMap.has(Number(r.id))){
+      const item={id:Number(r.id),type:r.type,amt:parseFloat(r.amt),desc:r.description||r.desc||'',cat:r.cat,date:r.date};
+      await idbPut(ST,item);txs.push(item);
     }
   }
-
+  // Remove locally deleted items
+  const deletedRemote=new Set(remote.filter(r=>r.deleted).map(r=>Number(r.id)));
+  for(const id of deletedRemote){if(localMap.has(id)){txs=txs.filter(t=>t.id!==id);await idbDel(ST,id);}}
   render();
   setSyncStatus('online');
 }
 
-async function queueOp(op){
-  await idbPut(QST,{id:Date.now()+'_'+Math.random(),op,...(op==='upsert'?{data:arguments[1]}:{id:arguments[1]})});
-  updateQueueCount();
-  if(isOnline&&syncEnabled) flushQueue();
-}
-
-function updateQueueCount(){
-  idbAll(QST).then(q=>{
-    const el=document.getElementById('cfg-queue');
-    if(el) el.textContent=q.length+(q.length===1?' movimento':' movimenti');
-  });
-}
-
 async function manualSync(){
-  if(!syncEnabled){showToast(L('syncNonConf'));return;}
-  if(!isOnline){showToast(L('offline'));return;}
+  if(!syncEnabled){showToast('⚠️ Sincronizzazione non configurata');return;}
+  if(!isOnline){showToast('📴 Sei offline');return;}
   setSyncStatus('syncing');
   await flushQueue();
   await syncFromCloud();
-  showToast(L('syncCompletata'));
-  if(page==='impost') renderImpost();
+  showToast('✅ Sincronizzazione completata');
+  if(page==='impost')renderImpost();
 }
 
-// ═══════════════════════════════════════════
-// SETUP
-// ═══════════════════════════════════════════
-function loadConfig(){
-  sbUrl=localStorage.getItem('sb_url')||'';
-  sbKey=localStorage.getItem('sb_key')||'';
-  syncEnabled=!!(sbUrl&&sbKey);
+function updateQueueCount(){
+  idbAll(QST).then(q=>{const el=document.getElementById('cfg-queue');if(el)el.textContent=q.length+(q.length===1?' movimento':' movimenti');});
 }
+
+window.addEventListener('online',()=>{isOnline=true;if(syncEnabled){flushQueue().then(()=>syncFromCloud());}else setSyncStatus('offline','offline');});
+window.addEventListener('offline',()=>{isOnline=false;setSyncStatus('offline');});
+
+// ─── SETUP ────────────────────────────────────────────────────
+function loadConfig(){sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';syncEnabled=!!(sbUrl&&sbKey);}
 function saveConfig(){
   const u=document.getElementById('sb-url').value.trim().replace(/\/$/,'');
   const k=document.getElementById('sb-key').value.trim();
   if(!u||!k){showToast('❌ Inserisci URL e API key');return;}
   if(!u.startsWith('https://')){showToast('❌ URL non valido');return;}
-  localStorage.setItem('sb_url',u);
-  localStorage.setItem('sb_key',k);
+  localStorage.setItem('sb_url',u);localStorage.setItem('sb_key',k);
   sbUrl=u;sbKey=k;syncEnabled=true;
   document.getElementById('setup-screen').classList.add('hidden');
   document.getElementById('main-app').style.display='flex';
-  startApp();
-  showToast('✅ Supabase connesso!');
+  startApp();showToast('✅ Supabase connesso!');
 }
 function skipSync(){
-  localStorage.setItem('sb_url','');
-  localStorage.setItem('sb_key','');
-  syncEnabled=false;
+  localStorage.setItem('sb_url','');localStorage.setItem('sb_key','');syncEnabled=false;
   document.getElementById('setup-screen').classList.add('hidden');
   document.getElementById('main-app').style.display='flex';
   startApp();
@@ -883,27 +478,18 @@ function showSetup(){
   document.getElementById('sb-key').value=sbKey;
   document.getElementById('setup-screen').classList.remove('hidden');
 }
-function copySql(){
-  const txt=document.getElementById('sql-block').innerText;
-  navigator.clipboard.writeText(txt).then(()=>showToast('✅ SQL copiato'));
-}
+function copySql(){navigator.clipboard.writeText(document.getElementById('sql-block').innerText).then(()=>showToast('✅ SQL copiato'));}
 
-// ═══════════════════════════════════════════
-// NETWORK EVENTS
-// ═══════════════════════════════════════════
-window.addEventListener('online',()=>{isOnline=true;if(syncEnabled){flushQueue().then(()=>syncFromCloud());}else setSyncStatus('offline','offline');});
-window.addEventListener('offline',()=>{isOnline=false;setSyncStatus('offline');});
-
-// ═══════════════════════════════════════════
-// CORE APP
-// ═══════════════════════════════════════════
+// ─── UTILS ────────────────────────────────────────────────────
 function fmt(n){return '€'+Math.abs(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtS(n){return Math.abs(n)>=1000?'€'+(Math.abs(n)/1000).toFixed(1)+'k':fmt(n);}
 function today(){return new Date().toISOString().split('T')[0];}
 function mTxs(){return txs.filter(t=>{const d=new Date(t.date);return d.getFullYear()===vYear&&d.getMonth()===vMonth;}).sort((a,b)=>new Date(b.date)-new Date(a.date));}
 function yTxs(){return txs.filter(t=>new Date(t.date).getFullYear()===vYear);}
 function dc(k){if(charts[k]){charts[k].destroy();delete charts[k];}}
+function getIcon(cat){return ICONS[cat]||'💰';}
 
+// ─── NAVIGAZIONE ──────────────────────────────────────────────
 function switchPage(p){
   page=p;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
@@ -914,85 +500,67 @@ function switchPage(p){
   document.getElementById('prev-btn').style.visibility=p==='impost'?'hidden':'visible';
   document.getElementById('next-btn').style.visibility=p==='impost'?'hidden':'visible';
   document.getElementById('period-label').style.visibility=p==='impost'?'hidden':'visible';
-  if(p==='impost') renderImpost(); else render();
+  if(p==='impost')renderImpost();else render();
 }
 
+// ─── MODAL ────────────────────────────────────────────────────
 function openModal(){document.getElementById('modal-backdrop').classList.add('open');document.getElementById('fab').classList.add('open');document.getElementById('inp-amt').focus();}
 function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');document.getElementById('fab').classList.remove('open');}
 document.getElementById('fab').onclick=()=>{if(document.getElementById('modal-backdrop').classList.contains('open'))closeModal();else openModal();};
 document.getElementById('modal-backdrop').onclick=e=>{if(e.target===document.getElementById('modal-backdrop'))closeModal();};
-
 function setType(t){
   cType=t;
   document.getElementById('type-e').className='type-btn e'+(t==='e'?' active':'');
   document.getElementById('type-s').className='type-btn s'+(t==='s'?' active':'');
-  document.getElementById('save-btn').textContent=t==='e'?L('salvaEntrata'):L('salvaSpesa');
+  document.getElementById('save-btn').textContent=t==='e'?'Salva entrata':'Salva spesa';
   document.getElementById('save-btn').className='save-btn '+t;
   fillCats();
 }
-function fillCats(){
-  // Use stable keys as option values, translated labels as display text
-  document.getElementById('inp-cat').innerHTML=CAT_KEYS[cType].map(k=>`<option value="${k}">${catLabel(k)}</option>`).join('');
-  document.getElementById('type-e').textContent=L('entrata');
-  document.getElementById('type-s').textContent=L('spesa');
-  const sb=document.getElementById('save-btn');
-  if(sb) sb.textContent=cType==='e'?L('salvaEntrata'):L('salvaSpesa');
-}
+function fillCats(){document.getElementById('inp-cat').innerHTML=CATS[cType].map(c=>`<option>${c}</option>`).join('');}
 
+// ─── CRUD ─────────────────────────────────────────────────────
 async function saveTx(){
   const a=parseFloat(document.getElementById('inp-amt').value);
   const d=document.getElementById('inp-desc').value.trim();
   const c=document.getElementById('inp-cat').value;
   const dt=document.getElementById('inp-date').value;
-  if(!a||a<=0||!d||!dt){alert(L('compila'));return;}
-  const item={id:Date.now(),type:cType,amt:a,desc:d,cat:catKey(c),date:dt};
-  // 1. Save to local IndexedDB immediately
-  await idbPut(ST,item);
-  txs.push(item);
-  closeModal();
+  if(!a||a<=0||!d||!dt){alert('Compila tutti i campi');return;}
+  const item={id:Date.now(),type:cType,amt:a,desc:d,cat:c,date:dt};
+  await idbPut(ST,item);txs.push(item);closeModal();
   document.getElementById('inp-amt').value='';
   document.getElementById('inp-desc').value='';
   document.getElementById('inp-date').value=today();
   render();
-  // 2. Push to Supabase — await so it's guaranteed written before any sync
   if(syncEnabled){
-    if(isOnline){
-      setSyncStatus('syncing');
-      const ok=await sbUpsert(item);
-      setSyncStatus(ok!==undefined?'online':'error');
-    } else {
-      await idbPut(QST,{id:item.id+'_up',op:'upsert',data:item});
-      updateQueueCount();
-    }
+    if(isOnline){setSyncStatus('syncing');const ok=await sbUpsert(item);setSyncStatus(ok!==undefined?'online':'error');}
+    else{await idbPut(QST,{id:item.id+'_up',op:'upsert',data:item});updateQueueCount();}
+  }
+}
+async function deleteTx(id){
+  txs=txs.filter(t=>t.id!==id);await idbDel(ST,id);render();
+  if(syncEnabled){
+    if(isOnline)sbDelete(id).then(()=>setSyncStatus('online'));
+    else idbPut(QST,{id:id+'_del',op:'delete',id_ref:id});
   }
 }
 
-async function deleteTx(id){
-  txs=txs.filter(t=>t.id!==id);
-  await idbDel(ST,id);
-  render();
-  if(syncEnabled&&isOnline) sbDelete(id).then(()=>setSyncStatus('online'));
-  else if(syncEnabled) await idbPut(QST,{id:id+'_del',op:'delete',id_ref:id});
-}
-
-// ═══════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════
+// ─── RENDER CATEGORIE ─────────────────────────────────────────
 function renderCats(elId,list,cls){
   const m={};list.forEach(t=>{m[t.cat]=(m[t.cat]||0)+t.amt;});
   const cats=Object.entries(m).sort((a,b)=>b[1]-a[1]);
   const mx=cats[0]?cats[0][1]:1;
   const el=document.getElementById(elId);
-  if(!cats.length){el.innerHTML=`<div class="tx-empty">${L('nessunaDato')}</div>`;return;}
+  if(!cats.length){el.innerHTML='<div class="tx-empty">Nessun dato</div>';return;}
   el.innerHTML=cats.map((c,i)=>`
     <div class="cat-row">
-      <div class="cat-icon">${getIcon(c[0])||'💰'}</div>
-      <div class="cat-info"><div class="cat-name">${catLabel(c[0])}</div>
+      <div class="cat-icon">${getIcon(c[0])}</div>
+      <div class="cat-info"><div class="cat-name">${c[0]}</div>
       <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${(c[1]/mx*100).toFixed(1)}%;background:${CLRS[i%CLRS.length]}"></div></div></div>
       <div class="cat-val ${cls}">${fmt(c[1])}</div>
     </div>`).join('');
 }
 
+// ─── RENDER MESE ──────────────────────────────────────────────
 function renderMese(){
   const list=mTxs();
   const inT=list.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0);
@@ -1005,15 +573,15 @@ function renderMese(){
   bEl.className='val '+(bal>0?'green':bal<0?'red':'neutral');
   document.getElementById('m-sub').textContent=list.length?`${list.length} moviment${list.length===1?'o':'i'}`:'';
   const txEl=document.getElementById('tx-list');
-  if(!list.length){txEl.innerHTML=`<div class="tx-empty">${L('nessunMov')}</div>`;}
+  if(!list.length){txEl.innerHTML='<div class="tx-empty">Nessun movimento questo mese</div>';}
   else{
     txEl.innerHTML=list.map(t=>`
       <div class="tx-item" id="tx-${t.id}">
-        <div class="tx-emoji ${t.type}">${getIcon(t.cat)||'💰'}</div>
+        <div class="tx-emoji ${t.type}">${getIcon(t.cat)}</div>
         <div class="tx-body"><div class="tx-desc">${t.desc}</div>
-        <div class="tx-meta">${catLabel(catKey(t.cat))} · ${new Date(t.date).toLocaleDateString('it-IT')}</div></div>
+        <div class="tx-meta">${t.cat} · ${new Date(t.date).toLocaleDateString('it-IT')}</div></div>
         <div class="tx-amt ${t.type}">${t.type==='e'?'+':'-'}${fmt(t.amt)}</div>
-        <button class="tx-del-btn" onclick="deleteTx(${t.id})">${L('elimina')}</button>
+        <button class="tx-del-btn" onclick="deleteTx(${t.id})">Elimina</button>
       </div>`).join('');
     list.forEach(t=>{
       const el=document.getElementById('tx-'+t.id);
@@ -1025,37 +593,51 @@ function renderMese(){
   renderCats('cat-mese',list.filter(t=>t.type==='s'),'red');
   dc('mese');
   const lbs=[],eD=[],sD=[];
-  for(let i=5;i>=0;i--){const d=new Date(vYear,vMonth-i,1);lbs.push(MI()[d.getMonth()]);const mt=txs.filter(t=>{const td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});eD.push(parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2)));sD.push(parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2)));}
+  for(let i=5;i>=0;i--){
+    const d=new Date(vYear,vMonth-i,1);
+    lbs.push(MI[d.getMonth()]);
+    const mt=txs.filter(t=>{const td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});
+    eD.push(parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2)));
+    sD.push(parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2)));
+  }
   charts['mese']=new Chart(document.getElementById('chart-mese'),{type:'bar',data:{labels:lbs,datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:6,barPercentage:0.6},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:6,barPercentage:0.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
 }
 
+// ─── RENDER ANNO ──────────────────────────────────────────────
 function renderAnno(){
   const list=yTxs();
   const inT=list.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0);
   const outT=list.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0);
-  const bal=inT-outT; const rate=inT>0?Math.round((bal/inT)*100):0;
+  const bal=inT-outT;const rate=inT>0?Math.round((bal/inT)*100):0;
   document.getElementById('a-in').textContent=fmt(inT);
   document.getElementById('a-out').textContent=fmt(outT);
   const aEl=document.getElementById('a-bal');aEl.textContent=(bal>=0?'+':'')+fmt(bal);aEl.className='val '+(bal>0?'green':bal<0?'red':'neutral');
   const rEl=document.getElementById('a-rate');rEl.textContent=rate+'%';rEl.className='val '+(rate>=20?'green':rate>=0?'amber':'red');
-  document.getElementById('a-rate-sub').textContent=rate>=20?L('ottimo'):rate>=10?L('buono'):rate>0?L('basso'):L('deficit');
+  document.getElementById('a-rate-sub').textContent=rate>=20?'🌟 Ottimo risparmio':rate>=10?'👍 Buon risparmio':rate>0?'⚠️ Basso':'🔴 Deficit';
   const eD=[],sD=[],cumD=[];let cum=0;
-  for(let m=0;m<12;m++){const mt=list.filter(t=>new Date(t.date).getMonth()===m);const mI=parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2));const mO=parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2));eD.push(mI);sD.push(mO);cum=parseFloat((cum+mI-mO).toFixed(2));cumD.push(cum);}
-  dc('anno');const annoTitle=document.getElementById('ct-tutti-mesi');if(annoTitle)annoTitle.textContent=L('tuttiMesi');
-  charts['anno']=new Chart(document.getElementById('chart-anno'),{type:'bar',data:{labels:MI(),datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:5,barPercentage:0.55},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:5,barPercentage:0.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
-  dc('cumul');charts['cumul']=new Chart(document.getElementById('chart-cumul'),{type:'line',data:{labels:MI(),datasets:[{label:'Saldo',data:cumD,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
+  for(let m=0;m<12;m++){
+    const mt=list.filter(t=>new Date(t.date).getMonth()===m);
+    const mI=parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2));
+    const mO=parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2));
+    eD.push(mI);sD.push(mO);cum=parseFloat((cum+mI-mO).toFixed(2));cumD.push(cum);
+  }
+  dc('anno');charts['anno']=new Chart(document.getElementById('chart-anno'),{type:'bar',data:{labels:MI,datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:5,barPercentage:0.55},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:5,barPercentage:0.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
+  dc('cumul');charts['cumul']=new Chart(document.getElementById('chart-cumul'),{type:'line',data:{labels:MI,datasets:[{label:'Saldo',data:cumD,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
   renderCats('cat-spese-anno',list.filter(t=>t.type==='s'),'red');
   renderCats('cat-entrate-anno',list.filter(t=>t.type==='e'),'green');
   const tbl=document.getElementById('month-table');
-  tbl.innerHTML=`<div class="mtr hdr">${L("mesiTabella")}</span><span style="text-align:right">${L("entrateTbl")}</span><span style="text-align:right">${L("speseTbl")}</span><span style="text-align:right">${L("saldoTbl")}</div>`
-  +MI().map((mn,m)=>{const mI=eD[m],mO=sD[m],mB=parseFloat((mI-mO).toFixed(2));const bc=mB>0?'var(--green)':mB<0?'var(--red)':'var(--muted)';const has=mI>0||mO>0;
-    return `<div class="mtr" style="${!has?'opacity:0.3':''}" onclick="goMonth(${m})"><span class="mtr-name">${MF()[m]}</span><span class="mtr-num" style="color:var(--green)">${mI>0?'+'+fmtS(mI):'—'}</span><span class="mtr-num" style="color:var(--red)">${mO>0?'-'+fmtS(mO):'—'}</span><span class="mtr-num" style="color:${bc};font-weight:600">${has?(mB>=0?'+':'-')+fmtS(mB):'—'}</span></div>`;
+  tbl.innerHTML=`<div class="mtr hdr"><span>Mese</span><span style="text-align:right">Entrate</span><span style="text-align:right">Spese</span><span style="text-align:right">Saldo</span></div>`
+  +MF.map((mn,m)=>{
+    const mI=eD[m],mO=sD[m],mB=parseFloat((mI-mO).toFixed(2));
+    const bc=mB>0?'var(--green)':mB<0?'var(--red)':'var(--muted)';const has=mI>0||mO>0;
+    return `<div class="mtr" style="${!has?'opacity:0.3':''}" onclick="goMonth(${m})"><span class="mtr-name">${mn}</span><span class="mtr-num" style="color:var(--green)">${mI>0?'+'+fmtS(mI):'—'}</span><span class="mtr-num" style="color:var(--red)">${mO>0?'-'+fmtS(mO):'—'}</span><span class="mtr-num" style="color:${bc};font-weight:600">${has?(mB>=0?'+':'-')+fmtS(mB):'—'}</span></div>`;
   }).join('');
 }
 
+// ─── RENDER IMPOSTAZIONI ──────────────────────────────────────
 function renderImpost(){
   document.getElementById('db-count').textContent=txs.length+' movimenti';
-  document.getElementById('cfg-stato').textContent=syncEnabled?(isOnline?L('connesso'):L('configOffline')):L('soloLocale');
+  document.getElementById('cfg-stato').textContent=syncEnabled?(isOnline?'🟢 Connesso e sincronizzato':'🟡 Configurato, ora offline'):'⚪ Solo locale';
   document.getElementById('cfg-url').textContent=sbUrl?sbUrl.replace('https://','').split('.')[0]+'...':'—';
   updateQueueCount();
   if(txs.length){
@@ -1063,124 +645,90 @@ function renderImpost(){
     document.getElementById('db-first').textContent=new Date(s[0].date).toLocaleDateString('it-IT')+' — '+s[0].desc;
     document.getElementById('db-last').textContent=new Date(s[s.length-1].date).toLocaleDateString('it-IT')+' — '+s[s.length-1].desc;
     const bytes=new Blob([JSON.stringify(txs)]).size;
-    document.getElementById('db-size').textContent=bytes<1024?bytes+' B':bytes<1048576?(bytes/1024).toFixed(1)+' KB':(bytes/1048576).toFixed(2)+' MB';
+    document.getElementById('db-size').textContent=bytes<1024?bytes+' B':(bytes/1024).toFixed(1)+' KB';
   }else{document.getElementById('db-first').textContent='—';document.getElementById('db-last').textContent='—';document.getElementById('db-size').textContent='0 B';}
 }
 
 function goMonth(m){vMonth=m;switchPage('mese');}
-function updateLabel(){document.getElementById('period-label').textContent=page==='mese'?MI()[vMonth]+' '+vYear:''+vYear;}
+function updateLabel(){document.getElementById('period-label').textContent=page==='mese'?MI[vMonth]+' '+vYear:''+vYear;}
 function render(){updateLabel();if(page==='mese')renderMese();else if(page==='anno')renderAnno();}
 
 document.getElementById('prev-btn').onclick=()=>{if(page==='mese'){vMonth--;if(vMonth<0){vMonth=11;vYear--;}}else vYear--;render();};
 document.getElementById('next-btn').onclick=()=>{if(page==='mese'){vMonth++;if(vMonth>11){vMonth=0;vYear++;}}else vYear++;render();};
 
-// ═══════════════════════════════════════════
-// EXPORT / IMPORT / RESET
-// ═══════════════════════════════════════════
+// ─── TOAST ────────────────────────────────────────────────────
 let toastTimer;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2500);}
 
+// ─── EXPORT / IMPORT / RESET ──────────────────────────────────
 function exportJSON(){
   const blob=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),transactions:txs},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget-backup-'+today()+'.json';a.click();
-  showToast(L('jsonEsp'));
+  showToast('✅ JSON esportato');
 }
 function exportCSV(){
   const rows=txs.sort((a,b)=>a.date.localeCompare(b.date)).map(t=>[t.date,t.type==='e'?'Entrata':'Spesa',t.cat,'"'+t.desc.replace(/"/g,'""')+'"',(t.type==='e'?t.amt:-t.amt).toFixed(2)].join(','));
   const blob=new Blob(['\uFEFF'+'Data,Tipo,Categoria,Descrizione,Importo\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget-'+today()+'.csv';a.click();
-  showToast(L('csvEsp'));
+  showToast('✅ CSV esportato');
 }
 async function importJSON(event){
   const file=event.target.files[0];if(!file)return;
   try{
     const data=JSON.parse(await file.text());
     const items=data.transactions||data;
-    if(!Array.isArray(items)||!items.length){showToast(L('fileInvalido'));return;}
-    const add=confirm(`${L('trovati')} ${items.length} ${L('movImportati')}`);
-    if(!add){await Promise.all(txs.map(t=>idbDel(ST,t.id)));txs=[];}
+    if(!Array.isArray(items)||!items.length){showToast('❌ File non valido');return;}
+    const add=confirm(`Trovati ${items.length} movimenti.\nOK = Aggiungi   Annulla = Sostituisci`);
+    if(!add){await idbClear(ST);txs=[];}
     const ids=new Set(txs.map(t=>t.id));let n=0;
     for(const item of items){
       if(!item.id||!item.date||!item.amt||!item.type)continue;
       if(ids.has(item.id))item.id=Date.now()+Math.random();
       await idbPut(ST,item);
-      if(syncEnabled&&isOnline) sbUpsert(item);
+      if(syncEnabled&&isOnline)sbUpsert(item);
       txs.push(item);n++;
     }
-    event.target.value='';render();renderImpost();showToast(`✅ ${n} ${L('movImportatiOk')}`);
-  }catch(e){showToast(L('errImport'));console.error(e);}
+    event.target.value='';render();renderImpost();showToast(`✅ ${n} movimenti importati`);
+  }catch(e){showToast('❌ Errore importazione');}
 }
 async function resetDB(){
-  if(!confirm(`${L('cancellaConf')} ${txs.length} ${L('cancellaConf2')}`))return;
-  if(syncEnabled&&isOnline&&confirm(L('cancellaCloud'))){
-    for(const t of txs) await sbDelete(t.id);
-  }
-  await idbClear(ST);await idbClear(QST);txs=[];
-  render();renderImpost();showToast(L('datiCancellati'));
+  if(!confirm(`Cancellare TUTTI i ${txs.length} movimenti?\nQuesta azione è irreversibile.`))return;
+  if(syncEnabled&&isOnline&&confirm('Cancellare anche dal cloud (Supabase)?')){for(const t of txs)await sbDelete(t.id);}
+  await idbClear(ST);await idbClear(QST);txs=[];render();renderImpost();showToast('🗑️ Dati cancellati');
 }
 
-// ═══════════════════════════════════════════
-// INSTALL PWA
-// ═══════════════════════════════════════════
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const w=document.getElementById('install-banner-wrap');if(!localStorage.getItem('install_dismissed')){w.innerHTML=`<div class="install-banner"><div class="icon">📲</div><div class="text"><strong>Installa l'app</strong>Aggiungila alla home screen</div><button onclick="installPWA()">Installa</button><button class="close-banner" onclick="dismissBanner()">✕</button></div>`;}});
+// ─── INSTALL PWA ──────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const w=document.getElementById('install-banner-wrap');if(!localStorage.getItem('install_dismissed')){w.innerHTML=`<div class="install-banner"><div class="icon">📲</div><div class="text"><strong>Installa l'app</strong>Aggiungila alla home screen per usarla offline</div><button onclick="installPWA()">Installa</button><button class="close-banner" onclick="dismissBanner()">✕</button></div>`;}});
 async function installPWA(){if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;if(outcome==='accepted')document.getElementById('install-banner-wrap').innerHTML='';dp=null;}
 function dismissBanner(){localStorage.setItem('install_dismissed','1');document.getElementById('install-banner-wrap').innerHTML='';}
 
-// ═══════════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════════
+// ─── BOOT ─────────────────────────────────────────────────────
 async function startApp(){
   document.getElementById('inp-date').value=today();
-  applyLang();
   fillCats();
   await openDB();
   txs=await idbAll(ST);
   render();
   if(syncEnabled){
     setSyncStatus(isOnline?'syncing':'offline');
-    if(isOnline){
-      await flushQueue();
-      await syncFromCloud();
-    }
+    if(isOnline){await flushQueue();await syncFromCloud();}
     startRealtime();
-  } else {
+  }else{
     setSyncStatus('offline','locale');
   }
-  // Service Worker — registra e ascolta aggiornamenti
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').then(reg=>{
-      // Controlla aggiornamenti ogni volta che l'app torna in foreground
-      document.addEventListener('visibilitychange',()=>{
-        if(document.visibilityState==='visible') reg.update();
-      });
-      // Quando un nuovo SW è pronto, ricarica automaticamente
-      reg.addEventListener('updatefound',()=>{
-        const newSW=reg.installing;
-        newSW.addEventListener('statechange',()=>{
-          if(newSW.state==='activated'){
-            // Nuovo SW attivo — ricarica silenziosamente per prendere i nuovi file
-            window.location.reload();
-          }
-        });
-      });
+      document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')reg.update();});
+      reg.addEventListener('updatefound',()=>{const nw=reg.installing;nw.addEventListener('statechange',()=>{if(nw.state==='activated')window.location.reload();});});
     }).catch(()=>{});
-    // Se il SW manda un messaggio di skip-waiting, ricarica
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      window.location.reload();
-    });
+    navigator.serviceWorker.addEventListener('controllerchange',()=>window.location.reload());
   }
 }
 
-// Check if already configured or first launch
 loadConfig();
-const hasConfig=localStorage.getItem('sb_url')!==null; // null = never set, '' = skipped
-if(hasConfig){
-  document.getElementById('main-app').style.display='flex';
-  startApp();
-} else {
-  // First launch — show setup
-  document.getElementById('setup-screen').classList.remove('hidden');
-}
+const hasConfig=localStorage.getItem('sb_url')!==null;
+if(hasConfig){document.getElementById('main-app').style.display='flex';startApp();}
+else{document.getElementById('setup-screen').classList.remove('hidden');}
 </script>
 </body>
 </html>
