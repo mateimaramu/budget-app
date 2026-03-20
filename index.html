@@ -433,7 +433,7 @@ async function sbDelete(id){
 }
 
 async function sbGetAll(){
-  const data=await sbFetch('transactions?deleted=eq.false&order=date.desc');
+  const data=await sbFetch('transactions?deleted=eq.false&order=date.asc');
   return data||[];
 }
 
