@@ -737,10 +737,7 @@ function exportCSV(){
     (t.type==='e'?t.amt:-t.amt).toFixed(2)
   ].join(','));
   // sep=, dice ad Excel di usare la virgola come delimitatore automaticamente
-  const csv='sep=,
-Data,Tipo,Categoria,Descrizione,Importo
-'+rows.join('
-');
+  const csv='sep=,\nData,Tipo,Categoria,Descrizione,Importo\n'+rows.join('\n');
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget-'+today()+'.csv';a.click();
   showToast('✅ CSV esportato');
