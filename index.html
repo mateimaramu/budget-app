@@ -729,17 +729,19 @@ function exportJSON(){
   showToast('✅ JSON esportato');
 }
 function exportCSV(){
-  const fmtNum=n=>n.toFixed(2).replace('.',',');
   const rows=txs.sort((a,b)=>a.date.localeCompare(b.date)).map(t=>[
     t.date,
     t.type==='e'?'Entrata':'Spesa',
     t.cat,
     '"'+t.desc.replace(/"/g,'""')+'"',
-    fmtNum(t.type==='e'?t.amt:-t.amt)
-  ].join(';'));
-  const blob=new Blob(['﻿'+'Data;Tipo;Categoria;Descrizione;Importo
+    (t.type==='e'?t.amt:-t.amt).toFixed(2)
+  ].join(','));
+  // sep=, dice ad Excel di usare la virgola come delimitatore automaticamente
+  const csv='sep=,
+Data,Tipo,Categoria,Descrizione,Importo
 '+rows.join('
-')],{type:'text/csv;charset=utf-8'});
+');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budget-'+today()+'.csv';a.click();
   showToast('✅ CSV esportato');
 }
