@@ -423,12 +423,12 @@ async function syncFromCloud(silent=false){
   const localMap=new Map(txs.map(t=>[t.id,t]));
   // Push local-only items up
   for(const t of txs){if(!remoteMap.has(t.id))await sbUpsert(t);}
-  // Pull remote-only items down
+  // Pull all remote items — new ones AND updates to existing (remote wins)
   for(const r of remote){
-    if(!localMap.has(Number(r.id))){
-      const item={id:Number(r.id),type:r.type,amt:parseFloat(r.amt),desc:r.description||r.desc||'',cat:r.cat,date:r.date};
-      await idbPut(ST,item);txs.push(item);
-    }
+    const item={id:Number(r.id),type:r.type,amt:parseFloat(r.amt),desc:r.description||r.desc||'',cat:r.cat,date:r.date};
+    await idbPut(ST,item);
+    if(!localMap.has(item.id)){txs.push(item);}
+    else{const idx=txs.findIndex(t=>t.id===item.id);if(idx>=0)txs[idx]=item;}
   }
   // Remove locally deleted items
   const deletedRemote=new Set(remote.filter(r=>r.deleted).map(r=>Number(r.id)));
