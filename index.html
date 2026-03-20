@@ -502,30 +502,27 @@ async function syncFromCloud(silent=false){
   if(!syncEnabled||!isOnline)return;
   if(!silent)setSyncStatus('syncing');
   const remote=await sbGetAll();
-  if(!remote||!remote.length&&txs.length>0){
-    // Empty remote but we have local data — might be first sync, push up
-    for(const t of txs){await sbUpsert(t);}
+  // Connection failed
+  if(remote===null){setSyncStatus('error');return;}
+  // First sync: remote empty but we have local data — push everything up
+  if(remote.length===0&&txs.length>0){
+    for(const t of txs) await sbUpsert(t);
     setSyncStatus('online');
     return;
   }
-  // Merge remote into local
-  const localIds=new Set(txs.map(t=>t.id));
-  let changed=false;
-  for(const r of remote){
-    if(!localIds.has(r.id)){
-      // New from remote
-      const item={id:r.id,type:r.type,amt:parseFloat(r.amt),desc:r.description||r.desc,cat:r.cat,date:r.date};
-      txs.push(item);
-      await idbPut(ST,item);
-      changed=true;
-    }
-  }
-  // Check for remote deletes (items in local but not in remote)
-  const remoteIds=new Set(remote.map(r=>r.id));
-  const toRemove=txs.filter(t=>!remoteIds.has(t.id));
-  for(const t of toRemove){txs=txs.filter(x=>x.id!==t.id);await idbDel(ST,t.id);changed=true;}
-
-  if(changed) render();
+  // Cloud is source of truth — overwrite local entirely
+  const remoteItems=remote.map(r=>({
+    id:Number(r.id),
+    type:r.type,
+    amt:parseFloat(r.amt),
+    desc:r.description||r.desc||'',
+    cat:r.cat,
+    date:r.date
+  }));
+  await idbClear(ST);
+  for(const item of remoteItems) await idbPut(ST,item);
+  txs=remoteItems;
+  render();
   setSyncStatus('online');
 }
 
