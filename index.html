@@ -388,9 +388,35 @@ CREATE POLICY "public access" ON transactions
 // ═══════════════════════════════════════════
 // I18N — TRANSLATIONS
 // ═══════════════════════════════════════════
+// Stable keys saved to DB — never change these
+const CAT_KEYS={
+  e:['salary','freelance','rent_in','investments','gift','reimbursement','other_in'],
+  s:['home','food','transport','health','entertainment','clothing','bills','subscriptions','restaurant','sport','other_out']
+};
+
+// Translate a category key to current language label
+function catLabel(key){
+  const map=LANGS[currentLang]?.cats||LANGS['it'].cats;
+  return map[key]||key;
+}
+// Normalize a category to its stable key
+// Handles: already-a-key, legacy Italian labels, any language labels
+function catKey(labelOrKey){
+  const allKeys=[...CAT_KEYS.e,...CAT_KEYS.s];
+  // Already a valid key
+  if(allKeys.includes(labelOrKey)) return labelOrKey;
+  // Search in all language label maps
+  for(const lang of Object.values(LANGS)){
+    for(const [k,v] of Object.entries(lang.cats)){
+      if(v===labelOrKey) return k;
+    }
+  }
+  return labelOrKey; // unknown — keep as-is
+}
+
 const LANGS={
   it:{
-    cats:{e:['Stipendio','Freelance','Affitto ricevuto','Investimenti','Regalo','Rimborso','Altro'],s:['Casa','Cibo & Spesa','Trasporti','Salute','Svago','Abbigliamento','Bollette','Abbonamenti','Ristorante','Sport','Altro']},
+    cats:{salary:'Stipendio',freelance:'Freelance',rent_in:'Affitto ricevuto',investments:'Investimenti',gift:'Regalo',reimbursement:'Rimborso',other_in:'Altro',home:'Casa',food:'Cibo & Spesa',transport:'Trasporti',health:'Salute',entertainment:'Svago',clothing:'Abbigliamento',bills:'Bollette',subscriptions:'Abbonamenti',restaurant:'Ristorante',sport:'Sport',other_out:'Altro'},
     mi:['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'],
     mf:['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
     t:{
@@ -431,7 +457,7 @@ const LANGS={
     }
   },
   ro:{
-    cats:{e:['Salariu','Freelance','Chirie primită','Investiții','Cadou','Rambursare','Altele'],s:['Casă','Mâncare & Cumpărături','Transport','Sănătate','Distracție','Îmbrăcăminte','Facturi','Abonamente','Restaurant','Sport','Altele']},
+    cats:{salary:'Salariu',freelance:'Freelance',rent_in:'Chirie primită',investments:'Investiții',gift:'Cadou',reimbursement:'Rambursare',other_in:'Altele',home:'Casă',food:'Mâncare & Cumpărături',transport:'Transport',health:'Sănătate',entertainment:'Distracție',clothing:'Îmbrăcăminte',bills:'Facturi',subscriptions:'Abonamente',restaurant:'Restaurant',sport:'Sport',other_out:'Altele'},
     mi:['Ian','Feb','Mar','Apr','Mai','Iun','Iul','Aug','Sep','Oct','Nov','Dec'],
     mf:['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
     t:{
@@ -472,7 +498,7 @@ const LANGS={
     }
   },
   en:{
-    cats:{e:['Salary','Freelance','Rent received','Investments','Gift','Reimbursement','Other'],s:['Home','Food & Shopping','Transport','Health','Entertainment','Clothing','Bills','Subscriptions','Restaurant','Sport','Other']},
+    cats:{salary:'Salary',freelance:'Freelance',rent_in:'Rent received',investments:'Investments',gift:'Gift',reimbursement:'Reimbursement',other_in:'Other',home:'Home',food:'Food & Shopping',transport:'Transport',health:'Health',entertainment:'Entertainment',clothing:'Clothing',bills:'Bills',subscriptions:'Subscriptions',restaurant:'Restaurant',sport:'Sport',other_out:'Other'},
     mi:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     mf:['January','February','March','April','May','June','July','August','September','October','November','December'],
     t:{
@@ -516,31 +542,22 @@ const LANGS={
 
 let currentLang = localStorage.getItem('lang') || 'it';
 function L(key){ return LANGS[currentLang].t[key] || LANGS['it'].t[key] || key; }
+// CATS() kept for compatibility but fillCats uses CAT_KEYS directly
 function CATS(){ return LANGS[currentLang].cats; }
 function MI(){ return LANGS[currentLang].mi; }
 function MF(){ return LANGS[currentLang].mf; }
 
-const ICONS_MAP={};
-// Build icon map from all languages
-Object.values(LANGS).forEach(lang=>{
-  [...lang.cats.e,...lang.cats.s].forEach((cat,i,arr)=>{
-    const icons=['💼','💻','🏠','📈','🎁','↩️','🏠','🛒','🚗','💊','🎮','👔','⚡','📱','🍽️','🏃','💰'];
-    if(!ICONS_MAP[cat]) ICONS_MAP[cat]=icons[i%icons.length]||'💰';
-  });
-});
+
 // Static icon assignments
-const ICONS_STATIC={
-  Stipendio:'💼',Freelance:'💻','Affitto ricevuto':'🏠',Investimenti:'📈',Regalo:'🎁',Rimborso:'↩️',
-  Casa:'🏠','Cibo & Spesa':'🛒',Trasporti:'🚗',Salute:'💊',Svago:'🎮',Abbigliamento:'👔',
-  Bollette:'⚡',Abbonamenti:'📱',Ristorante:'🍽️',Sport:'🏃',Altro:'💰',
-  Salary:'💼','Rent received':'🏠',Investments:'📈',Gift:'🎁',Reimbursement:'↩️',
-  Home:'🏠','Food & Shopping':'🛒',Transport:'🚗',Health:'💊',Entertainment:'🎮',
-  Clothing:'👔',Bills:'⚡',Subscriptions:'📱',Restaurant:'🍽️',Other:'💰',
-  Salariu:'💼','Chirie primită':'🏠','Investiții':'📈',Cadou:'🎁',Rambursare:'↩️',
-  'Casă':'🏠','Mâncare & Cumpărături':'🛒',Transport:'🚗','Sănătate':'💊',
-  'Distracție':'🎮','Îmbrăcăminte':'👔',Facturi:'⚡',Abonamente:'📱',Altele:'💰'
+// Icons indexed by stable category key
+const CAT_ICONS={
+  salary:'💼', freelance:'💻', rent_in:'🏠', investments:'📈', gift:'🎁', reimbursement:'↩️', other_in:'💰',
+  home:'🏠', food:'🛒', transport:'🚗', health:'💊', entertainment:'🎮', clothing:'👔',
+  bills:'⚡', subscriptions:'📱', restaurant:'🍽️', sport:'🏃', other_out:'💰'
 };
-function getIcon(cat){ return ICONS_STATIC[cat]||'💰'; }
+function getIcon(cat){
+  return CAT_ICONS[catKey(cat)]||'💰';
+}
 
 const CLRS=['#10b981','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48'];
 
@@ -914,8 +931,8 @@ function setType(t){
   fillCats();
 }
 function fillCats(){
-  document.getElementById('inp-cat').innerHTML=CATS()[cType].map(c=>`<option>${c}</option>`).join('');
-  // Update modal labels
+  // Use stable keys as option values, translated labels as display text
+  document.getElementById('inp-cat').innerHTML=CAT_KEYS[cType].map(k=>`<option value="${k}">${catLabel(k)}</option>`).join('');
   document.getElementById('type-e').textContent=L('entrata');
   document.getElementById('type-s').textContent=L('spesa');
   const sb=document.getElementById('save-btn');
@@ -928,7 +945,7 @@ async function saveTx(){
   const c=document.getElementById('inp-cat').value;
   const dt=document.getElementById('inp-date').value;
   if(!a||a<=0||!d||!dt){alert(L('compila'));return;}
-  const item={id:Date.now(),type:cType,amt:a,desc:d,cat:c,date:dt};
+  const item={id:Date.now(),type:cType,amt:a,desc:d,cat:catKey(c),date:dt};
   // 1. Save to local IndexedDB immediately
   await idbPut(ST,item);
   txs.push(item);
@@ -970,7 +987,7 @@ function renderCats(elId,list,cls){
   el.innerHTML=cats.map((c,i)=>`
     <div class="cat-row">
       <div class="cat-icon">${getIcon(c[0])||'💰'}</div>
-      <div class="cat-info"><div class="cat-name">${c[0]}</div>
+      <div class="cat-info"><div class="cat-name">${catLabel(c[0])}</div>
       <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${(c[1]/mx*100).toFixed(1)}%;background:${CLRS[i%CLRS.length]}"></div></div></div>
       <div class="cat-val ${cls}">${fmt(c[1])}</div>
     </div>`).join('');
@@ -994,7 +1011,7 @@ function renderMese(){
       <div class="tx-item" id="tx-${t.id}">
         <div class="tx-emoji ${t.type}">${getIcon(t.cat)||'💰'}</div>
         <div class="tx-body"><div class="tx-desc">${t.desc}</div>
-        <div class="tx-meta">${t.cat} · ${new Date(t.date).toLocaleDateString('it-IT')}</div></div>
+        <div class="tx-meta">${catLabel(catKey(t.cat))} · ${new Date(t.date).toLocaleDateString('it-IT')}</div></div>
         <div class="tx-amt ${t.type}">${t.type==='e'?'+':'-'}${fmt(t.amt)}</div>
         <button class="tx-del-btn" onclick="deleteTx(${t.id})">${L('elimina')}</button>
       </div>`).join('');
