@@ -1,59 +1,53 @@
-// Cache version — aggiornato automaticamente ad ogni deploy
-const CACHE = 'budget-' + new Date().toISOString().slice(0,10) + '-' + Math.random().toString(36).slice(2,6);
-
+const CACHE = 'budget-v6';
 const ASSETS = [
-  './',
-  './index.html',
   './manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
 ];
 
-// Installa: metti in cache le risorse principali
+// Installa: metti in cache solo gli asset statici (NON index.html)
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
       .then(c => c.addAll(ASSETS))
-      .then(() => self.skipWaiting()) // attiva subito senza aspettare
+      .then(() => self.skipWaiting()) // attiva subito, non aspettare che le tab si chiudano
   );
 });
 
-// Attiva: elimina tutte le cache vecchie
+// Attiva: elimina tutte le cache vecchie e prendi controllo immediato
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.claim()) // prendi controllo di tutti i tab aperti
+      .then(() => self.clients.claim()) // forza aggiornamento su tutti i tab aperti
   );
 });
 
-// Fetch: network-first per HTML (sempre aggiornato), cache-first per assets statici
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Per index.html usa sempre network-first così prende sempre la versione nuova
-  if (url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
+  // index.html — sempre network, fallback cache solo se offline
+  if (url.pathname.endsWith('/') || url.pathname.endsWith('index.html') || url.pathname === '/budget-app/') {
     e.respondWith(
-      fetch(e.request)
+      fetch(e.request, { cache: 'no-store' }) // no-store: ignora completamente la cache HTTP
         .then(resp => {
           const clone = resp.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
           return resp;
         })
-        .catch(() => caches.match(e.request)) // fallback cache se offline
+        .catch(() => caches.match(e.request))
     );
     return;
   }
 
-  // Per tutto il resto: cache-first
+  // Asset statici — cache first
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(resp => {
         if (!resp || resp.status !== 200 || resp.type === 'opaque') return resp;
-        const clone = resp.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
+        caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
         return resp;
-      }).catch(() => caches.match('./index.html'));
+      });
     })
   );
 });
