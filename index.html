@@ -64,6 +64,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:none;color:var(--muted);cursor:pointer;padding:4px 0;font-size:10px;font-weight:500;letter-spacing:0.3px;}
 .bn-btn .bn-icon{font-size:20px;line-height:1;}
 .bn-btn.active{color:var(--green);}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 
 .page{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 16px 90px;}
 .page.active{display:block;}
@@ -342,6 +343,7 @@ CREATE POLICY "public access" ON transactions
   <div class="bottom-nav">
     <button class="bn-btn active" id="bn-mese" onclick="switchPage('mese')"><span class="bn-icon">📅</span>Mese</button>
     <button class="bn-btn" id="bn-anno" onclick="switchPage('anno')"><span class="bn-icon">📊</span>Anno</button>
+    <button class="bn-btn" id="bn-sync" onclick="manualSync()"><span class="bn-icon" id="sync-nav-icon">🔄</span>Sync</button>
     <button class="bn-btn" id="bn-impost" onclick="switchPage('impost')"><span class="bn-icon">⚙️</span>Dati</button>
   </div>
 </div>
@@ -472,12 +474,35 @@ function startRealtime(){
 // ═══════════════════════════════════════════
 // SYNC LOGIC
 // ═══════════════════════════════════════════
+let spinTimer=null;
 function setSyncStatus(s,label){
   const dot=document.getElementById('sync-dot');
   const lbl=document.getElementById('sync-label');
+  const icon=document.getElementById('sync-nav-icon');
+  const btn=document.getElementById('bn-sync');
   if(!dot)return;
   dot.className='sync-dot '+s;
   lbl.textContent=label||(s==='online'?'sincronizzato':s==='syncing'?'sync...':s==='error'?'errore':'offline');
+  if(!icon||!btn)return;
+  if(s==='syncing'){
+    icon.style.display='inline-block';
+    icon.style.animation='spin 0.8s linear infinite';
+    btn.style.color='var(--amber)';
+  } else if(s==='online'){
+    icon.style.animation='none';
+    icon.textContent='✅';
+    btn.style.color='var(--green)';
+    clearTimeout(spinTimer);
+    spinTimer=setTimeout(()=>{icon.textContent='🔄';icon.style.animation='none';btn.style.color='';},2000);
+  } else if(s==='error'){
+    icon.style.animation='none';
+    icon.textContent='❌';
+    btn.style.color='var(--red)';
+  } else {
+    icon.style.animation='none';
+    icon.textContent='🔄';
+    btn.style.color='';
+  }
 }
 
 async function flushQueue(){
