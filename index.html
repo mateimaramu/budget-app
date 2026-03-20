@@ -234,97 +234,97 @@ CREATE POLICY "public access" ON transactions
   <div class="page active" id="page-mese">
     <div id="install-banner-wrap"></div>
     <div class="metrics">
-      <div class="metric"><div class="lbl">Entrate</div><div class="val green" id="m-in">€0</div></div>
-      <div class="metric"><div class="lbl">Spese</div><div class="val red" id="m-out">€0</div></div>
+      <div class="metric"><div class="lbl" id="lbl-entrate">Entrate</div><div class="val green" id="m-in">€0</div></div>
+      <div class="metric"><div class="lbl" id="lbl-spese">Spese</div><div class="val red" id="m-out">€0</div></div>
       <div class="metric metric-wide">
-        <div class="lbl">Saldo del mese</div>
+        <div class="lbl" id="lbl-saldo">Saldo del mese</div>
         <div class="val neutral" id="m-bal">€0</div>
         <div class="sub" id="m-sub"></div>
       </div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Ultimi 6 mesi</div>
+      <div class="chart-title" id="ct-ultimi6">Ultimi 6 mesi</div>
       <div class="chart-wrap" style="height:140px"><canvas id="chart-mese"></canvas></div>
     </div>
-    <div class="section-title">Spese per categoria</div>
+    <div class="section-title" id="st-spesecat-mese">Spese per categoria</div>
     <div class="cat-card" id="cat-mese"><div class="tx-empty">Nessuna spesa</div></div>
-    <div class="section-title">Movimenti</div>
+    <div class="section-title" id="st-movimenti">Movimenti</div>
     <div class="tx-list" id="tx-list"><div class="tx-empty">Nessun movimento</div></div>
   </div>
 
   <!-- PAGE ANNO -->
   <div class="page" id="page-anno">
     <div class="metrics">
-      <div class="metric"><div class="lbl">Entrate annue</div><div class="val green" id="a-in">€0</div></div>
-      <div class="metric"><div class="lbl">Spese annue</div><div class="val red" id="a-out">€0</div></div>
-      <div class="metric"><div class="lbl">Saldo annuale</div><div class="val neutral" id="a-bal">€0</div></div>
-      <div class="metric"><div class="lbl">Tasso risparmio</div><div class="val amber" id="a-rate">0%</div><div class="sub" id="a-rate-sub"></div></div>
+      <div class="metric"><div class="lbl" id="lbl-entrate-anno">Entrate annue</div><div class="val green" id="a-in">€0</div></div>
+      <div class="metric"><div class="lbl" id="lbl-spese-anno">Spese annue</div><div class="val red" id="a-out">€0</div></div>
+      <div class="metric"><div class="lbl" id="lbl-saldo-anno">Saldo annuale</div><div class="val neutral" id="a-bal">€0</div></div>
+      <div class="metric"><div class="lbl" id="lbl-tasso">Tasso risparmio</div><div class="val amber" id="a-rate">0%</div><div class="sub" id="a-rate-sub"></div></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Entrate vs Spese — tutti i mesi</div>
+      <div class="chart-title" id="ct-tutti-mesi">Entrate vs Spese — tutti i mesi</div>
       <div class="chart-wrap" style="height:160px"><canvas id="chart-anno"></canvas></div>
     </div>
-    <div class="section-title">Saldo cumulativo</div>
+    <div class="section-title" id="st-saldo-cumul">Saldo cumulativo</div>
     <div class="chart-card">
-      <div class="chart-title">Andamento saldo nell'anno</div>
+      <div class="chart-title" id="ct-andamento">Andamento saldo nell'anno</div>
       <div class="chart-wrap" style="height:120px"><canvas id="chart-cumul"></canvas></div>
     </div>
-    <div class="section-title">Spese per categoria</div>
+    <div class="section-title" id="st-spesecat-anno">Spese per categoria</div>
     <div class="cat-card" id="cat-spese-anno"><div class="tx-empty">Nessuna spesa</div></div>
-    <div class="section-title">Entrate per categoria</div>
+    <div class="section-title" id="st-entratecat-anno">Entrate per categoria</div>
     <div class="cat-card" id="cat-entrate-anno"><div class="tx-empty">Nessuna entrata</div></div>
-    <div class="section-title">Dettaglio mese per mese</div>
+    <div class="section-title" id="st-dettaglio">Dettaglio mese per mese</div>
     <div class="month-table" id="month-table"></div>
   </div>
 
   <!-- PAGE IMPOSTAZIONI -->
   <div class="page" id="page-impost">
-    <div class="section-title">Sincronizzazione</div>
+    <div class="section-title" id="st-sincro">Sincronizzazione</div>
     <div class="info-card">
-      <div class="info-row"><span class="ik">Stato</span><span class="iv" id="cfg-stato">—</span></div>
-      <div class="info-row"><span class="ik">Progetto</span><span class="iv" id="cfg-url">—</span></div>
-      <div class="info-row"><span class="ik">In coda offline</span><span class="iv" id="cfg-queue">0 movimenti</span></div>
+      <div class="info-row"><span class="ik" id="ik-stato">Stato</span><span class="iv" id="cfg-stato">—</span></div>
+      <div class="info-row"><span class="ik" id="ik-progetto">Progetto</span><span class="iv" id="cfg-url">—</span></div>
+      <div class="info-row"><span class="ik" id="ik-coda">In coda offline</span><span class="iv" id="cfg-queue">0 movimenti</span></div>
     </div>
     <div class="settings-group">
       <div class="settings-row" onclick="manualSync()">
         <div class="sr-icon blue">🔄</div>
-        <div class="sr-body"><div class="sr-title">Sincronizza ora</div><div class="sr-sub">Forza aggiornamento dal cloud</div></div>
+        <div class="sr-body"><div class="sr-title" id="sr-sync-ora">Sincronizza ora</div><div class="sr-sub" id="sr-sync-ora-sub">Forza aggiornamento dal cloud</div></div>
         <span class="sr-arrow">›</span>
       </div>
       <div class="settings-row" onclick="showSetup()">
         <div class="sr-icon purple">🔧</div>
-        <div class="sr-body"><div class="sr-title">Modifica configurazione</div><div class="sr-sub">Cambia progetto Supabase</div></div>
+        <div class="sr-body"><div class="sr-title" id="sr-modifica">Modifica configurazione</div><div class="sr-sub" id="sr-modifica-sub">Cambia progetto Supabase</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
 
-    <div class="section-title">Database locale</div>
+    <div class="section-title" id="st-db">Database locale</div>
     <div class="info-card">
-      <div class="info-row"><span class="ik">Movimenti totali</span><span class="iv" id="db-count">—</span></div>
-      <div class="info-row"><span class="ik">Primo movimento</span><span class="iv" id="db-first">—</span></div>
-      <div class="info-row"><span class="ik">Ultimo movimento</span><span class="iv" id="db-last">—</span></div>
-      <div class="info-row"><span class="ik">Dimensione stimata</span><span class="iv" id="db-size">—</span></div>
+      <div class="info-row"><span class="ik" id="ik-movtotali">Movimenti totali</span><span class="iv" id="db-count">—</span></div>
+      <div class="info-row"><span class="ik" id="ik-primo">Primo movimento</span><span class="iv" id="db-first">—</span></div>
+      <div class="info-row"><span class="ik" id="ik-ultimo">Ultimo movimento</span><span class="iv" id="db-last">—</span></div>
+      <div class="info-row"><span class="ik" id="ik-dim">Dimensione stimata</span><span class="iv" id="db-size">—</span></div>
     </div>
 
-    <div class="section-title">Esporta</div>
+    <div class="section-title" id="st-esporta">Esporta</div>
     <div class="settings-group">
       <div class="settings-row" onclick="exportJSON()">
         <div class="sr-icon blue">📤</div>
-        <div class="sr-body"><div class="sr-title">Esporta JSON</div><div class="sr-sub">Backup completo, reimportabile</div></div>
+        <div class="sr-body"><div class="sr-title" id="sr-json">Esporta JSON</div><div class="sr-sub" id="sr-json-sub">Backup completo, reimportabile</div></div>
         <span class="sr-arrow">›</span>
       </div>
       <div class="settings-row" onclick="exportCSV()">
         <div class="sr-icon green">📊</div>
-        <div class="sr-body"><div class="sr-title">Esporta CSV</div><div class="sr-sub">Per Excel o Fogli Google</div></div>
+        <div class="sr-body"><div class="sr-title" id="sr-csv">Esporta CSV</div><div class="sr-sub" id="sr-csv-sub">Per Excel o Fogli Google</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
 
-    <div class="section-title">Importa</div>
+    <div class="section-title" id="st-importa">Importa</div>
     <div class="settings-group">
       <div class="settings-row" onclick="document.getElementById('import-file').click()">
         <div class="sr-icon amber">📥</div>
-        <div class="sr-body"><div class="sr-title">Importa da JSON</div><div class="sr-sub">Ripristina un backup precedente</div></div>
+        <div class="sr-body"><div class="sr-title" id="sr-import">Importa da JSON</div><div class="sr-sub" id="sr-import-sub">Ripristina un backup precedente</div></div>
         <span class="sr-arrow">›</span>
       </div>
     </div>
@@ -367,15 +367,15 @@ CREATE POLICY "public access" ON transactions
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Nuovo movimento</div>
+    <div class="modal-title" id="modal-title">Nuovo movimento</div>
     <div class="type-toggle">
       <button class="type-btn active e" id="type-e" onclick="setType('e')">+ Entrata</button>
       <button class="type-btn s" id="type-s" onclick="setType('s')">− Spesa</button>
     </div>
-    <div class="field"><label>Importo €</label><input type="number" id="inp-amt" inputmode="decimal" placeholder="0.00" step="0.01"/></div>
-    <div class="field"><label>Descrizione</label><input type="text" id="inp-desc" placeholder="es. Stipendio"/></div>
-    <div class="field"><label>Categoria</label><select id="inp-cat"></select></div>
-    <div class="field"><label>Data</label><input type="date" id="inp-date"/></div>
+    <div class="field"><label id="lbl-importo">Importo €</label><input type="number" id="inp-amt" inputmode="decimal" placeholder="0.00" step="0.01"/></div>
+    <div class="field"><label id="lbl-descrizione">Descrizione</label><input type="text" id="inp-desc" placeholder="es. Stipendio"/></div>
+    <div class="field"><label id="lbl-categoria">Categoria</label><select id="inp-cat"></select></div>
+    <div class="field"><label id="lbl-data">Data</label><input type="date" id="inp-date"/></div>
     <button class="save-btn e" id="save-btn" onclick="saveTx()">Salva entrata</button>
   </div>
 </div>
@@ -554,6 +554,7 @@ function setLang(lang){
 }
 
 function applyLang(){
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
   // Topbar
   document.querySelector('.topbar h1').textContent=L('title');
   // Bottom nav
@@ -562,17 +563,60 @@ function applyLang(){
   document.getElementById('bn-sync').innerHTML=`<span class="bn-icon" id="sync-nav-icon">🔄</span>${L('sync')}`;
   document.getElementById('bn-impost').innerHTML=`<span class="bn-icon">⚙️</span>${L('dati')}`;
   // Modal
+  set('modal-title',L('nuovoMov'));
   document.getElementById('type-e').textContent=L('entrata');
   document.getElementById('type-s').textContent=L('spesa');
-  document.querySelector('#inp-amt').placeholder=L('importo').replace(' €','');
-  document.querySelector('label[for="inp-amt"]') && (document.querySelector('label[for="inp-amt"]').textContent=L('importo'));
   document.getElementById('inp-desc').placeholder=L('esDesc');
-  // Settings page labels
-  const ids={
-    'st-lingua':L('lingua'),'st-seleziona-lingua':L('selLingua'),
-    'st-pericolo':L('pericolo'),'st-cancella':L('cancella'),'st-cancella-sub':L('cancellaSub')
-  };
-  Object.entries(ids).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
+  set('lbl-importo',L('importo'));
+  set('lbl-descrizione',L('descrizione'));
+  set('lbl-categoria',L('categoria'));
+  set('lbl-data',L('data'));
+  // Page mese
+  set('lbl-entrate',L('entrate'));
+  set('lbl-spese',L('spese'));
+  set('lbl-saldo',L('saldo'));
+  set('ct-ultimi6',L('ultimi6'));
+  set('st-spesecat-mese',L('speseCateg'));
+  set('st-movimenti',L('movimenti'));
+  // Page anno
+  set('lbl-entrate-anno',L('entrateAnno'));
+  set('lbl-spese-anno',L('speseAnno'));
+  set('lbl-saldo-anno',L('saldoAnno'));
+  set('lbl-tasso',L('tassoRisparmio'));
+  set('ct-tutti-mesi',L('tuttiMesi'));
+  set('st-saldo-cumul',L('saldoCumul'));
+  set('ct-andamento',L('andamentoSaldo'));
+  set('st-spesecat-anno',L('speseCateg'));
+  set('st-entratecat-anno',L('entrateCateg'));
+  set('st-dettaglio',L('dettaglio'));
+  // Settings page
+  set('st-sincro',L('sincro'));
+  set('st-db',L('dbLocale'));
+  set('st-esporta',L('esporta'));
+  set('st-importa',L('importa'));
+  set('st-lingua',L('lingua'));
+  set('st-seleziona-lingua',L('selLingua'));
+  set('st-pericolo',L('pericolo'));
+  set('st-cancella',L('cancella'));
+  set('st-cancella-sub',L('cancellaSub'));
+  set('sr-sync-ora',L('syncOra'));
+  set('sr-sync-ora-sub',L('syncOraSub'));
+  set('sr-modifica',L('modificaConf'));
+  set('sr-modifica-sub',L('modificaConfSub'));
+  set('sr-json',L('esportaJSON'));
+  set('sr-json-sub',L('esportaJSONsub'));
+  set('sr-csv',L('esportaCSV'));
+  set('sr-csv-sub',L('esportaCSVsub'));
+  set('sr-import',L('importaJSON'));
+  set('sr-import-sub',L('importaJSONsub'));
+  set('ik-stato',L('stato'));
+  set('ik-progetto',L('progetto'));
+  set('ik-movtotali',L('movTotali'));
+  set('ik-primo',L('primoMov'));
+  set('ik-ultimo',L('ultimoMov'));
+  set('ik-dim',L('dimStimata'));
+  set('ik-coda',L('inCoda'));
+  set('iv-posizione',L('posizioneVal'));
   // Lang select value
   const sel=document.getElementById('lang-select');
   if(sel) sel.value=currentLang;
@@ -922,7 +966,7 @@ function renderCats(elId,list,cls){
   const cats=Object.entries(m).sort((a,b)=>b[1]-a[1]);
   const mx=cats[0]?cats[0][1]:1;
   const el=document.getElementById(elId);
-  if(!cats.length){el.innerHTML='<div class="tx-empty">Nessun dato</div>';return;}
+  if(!cats.length){el.innerHTML=`<div class="tx-empty">${L('nessunaDato')}</div>`;return;}
   el.innerHTML=cats.map((c,i)=>`
     <div class="cat-row">
       <div class="cat-icon">${getIcon(c[0])||'💰'}</div>
@@ -944,7 +988,7 @@ function renderMese(){
   bEl.className='val '+(bal>0?'green':bal<0?'red':'neutral');
   document.getElementById('m-sub').textContent=list.length?`${list.length} moviment${list.length===1?'o':'i'}`:'';
   const txEl=document.getElementById('tx-list');
-  if(!list.length){txEl.innerHTML='<div class="tx-empty">Nessun movimento questo mese</div>';}
+  if(!list.length){txEl.innerHTML=`<div class="tx-empty">${L('nessunMov')}</div>`;}
   else{
     txEl.innerHTML=list.map(t=>`
       <div class="tx-item" id="tx-${t.id}">
@@ -952,7 +996,7 @@ function renderMese(){
         <div class="tx-body"><div class="tx-desc">${t.desc}</div>
         <div class="tx-meta">${t.cat} · ${new Date(t.date).toLocaleDateString('it-IT')}</div></div>
         <div class="tx-amt ${t.type}">${t.type==='e'?'+':'-'}${fmt(t.amt)}</div>
-        <button class="tx-del-btn" onclick="deleteTx(${t.id})">'+L('elimina')+'</button>
+        <button class="tx-del-btn" onclick="deleteTx(${t.id})">${L('elimina')}</button>
       </div>`).join('');
     list.forEach(t=>{
       const el=document.getElementById('tx-'+t.id);
@@ -977,10 +1021,11 @@ function renderAnno(){
   document.getElementById('a-out').textContent=fmt(outT);
   const aEl=document.getElementById('a-bal');aEl.textContent=(bal>=0?'+':'')+fmt(bal);aEl.className='val '+(bal>0?'green':bal<0?'red':'neutral');
   const rEl=document.getElementById('a-rate');rEl.textContent=rate+'%';rEl.className='val '+(rate>=20?'green':rate>=0?'amber':'red');
-  document.getElementById('a-rate-sub').textContent=rate>=20?'🌟 Ottimo risparmio':rate>=10?'👍 Buon risparmio':rate>0?'⚠️ Basso':'🔴 Deficit';
+  document.getElementById('a-rate-sub').textContent=rate>=20?L('ottimo'):rate>=10?L('buono'):rate>0?L('basso'):L('deficit');
   const eD=[],sD=[],cumD=[];let cum=0;
   for(let m=0;m<12;m++){const mt=list.filter(t=>new Date(t.date).getMonth()===m);const mI=parseFloat(mt.filter(t=>t.type==='e').reduce((s,t)=>s+t.amt,0).toFixed(2));const mO=parseFloat(mt.filter(t=>t.type==='s').reduce((s,t)=>s+t.amt,0).toFixed(2));eD.push(mI);sD.push(mO);cum=parseFloat((cum+mI-mO).toFixed(2));cumD.push(cum);}
-  dc('anno');charts['anno']=new Chart(document.getElementById('chart-anno'),{type:'bar',data:{labels:MI(),datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:5,barPercentage:0.55},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:5,barPercentage:0.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
+  dc('anno');const annoTitle=document.getElementById('ct-tutti-mesi');if(annoTitle)annoTitle.textContent=L('tuttiMesi');
+  charts['anno']=new Chart(document.getElementById('chart-anno'),{type:'bar',data:{labels:MI(),datasets:[{label:'Entrate',data:eD,backgroundColor:'#10b981',borderRadius:5,barPercentage:0.55},{label:'Spese',data:sD,backgroundColor:'#f43f5e',borderRadius:5,barPercentage:0.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:11},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
   dc('cumul');charts['cumul']=new Chart(document.getElementById('chart-cumul'),{type:'line',data:{labels:MI(),datasets:[{label:'Saldo',data:cumD,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>fmtS(v)}}}}});
   renderCats('cat-spese-anno',list.filter(t=>t.type==='s'),'red');
   renderCats('cat-entrate-anno',list.filter(t=>t.type==='e'),'green');
@@ -993,7 +1038,7 @@ function renderAnno(){
 
 function renderImpost(){
   document.getElementById('db-count').textContent=txs.length+' movimenti';
-  document.getElementById('cfg-stato').textContent=syncEnabled?(isOnline?'🟢 Connesso e sincronizzato':'🟡 Configurato, ora offline'):'⚪ Solo locale';
+  document.getElementById('cfg-stato').textContent=syncEnabled?(isOnline?L('connesso'):L('configOffline')):L('soloLocale');
   document.getElementById('cfg-url').textContent=sbUrl?sbUrl.replace('https://','').split('.')[0]+'...':'—';
   updateQueueCount();
   if(txs.length){
